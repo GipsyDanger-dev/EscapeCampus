@@ -12,6 +12,7 @@ using EscapeCampus.Puzzle;
 using EscapeCampus.Save;
 using EscapeCampus.UI;
 using EscapeCampus.Core.Ending;
+using EscapeCampus.Core.Pacing;
 
 namespace EscapeCampus.Core
 {
@@ -157,6 +158,12 @@ namespace EscapeCampus.Core
                 truthObj.AddComponent<TruthRevealManager>();
             }
 
+            if (ExperienceDirector.Instance == null)
+            {
+                GameObject pacingObj = new GameObject("ExperienceDirector");
+                pacingObj.AddComponent<ExperienceDirector>();
+            }
+
             // UI Canvas
             Canvas canvas = FindObjectOfType<Canvas>();
             if (canvas == null)
@@ -198,6 +205,9 @@ namespace EscapeCampus.Core
 
                 // Semester 14 Debug Tool
                 CreateSemester14DebugTool(canvasObj);
+
+                // Pacing Debug Tool
+                CreatePacingDebugTool(canvasObj);
             }
 
             // Horror Event Trigger (on a separate object)
@@ -868,6 +878,42 @@ namespace EscapeCampus.Core
             var s14DebugType = typeof(Semester14DebugTool);
             SetSerializedField(s14DebugType, debugTool, "debugPanel", debugPanel);
             SetSerializedField(s14DebugType, debugTool, "debugText", debugText);
+
+            debugPanel.SetActive(false);
+        }
+
+        private void CreatePacingDebugTool(GameObject canvasObj)
+        {
+            // Debug panel at bottom-left
+            GameObject debugPanel = new GameObject("PacingDebugPanel");
+            debugPanel.transform.SetParent(canvasObj.transform, false);
+
+            Image debugBg = debugPanel.AddComponent<Image>();
+            debugBg.color = new Color(0, 0, 0, 0.85f);
+
+            RectTransform debugRect = debugPanel.GetComponent<RectTransform>();
+            debugRect.anchorMin = new Vector2(0, 0);
+            debugRect.anchorMax = new Vector2(0.25f, 0.3f);
+            debugRect.sizeDelta = Vector2.zero;
+
+            GameObject debugTextObj = new GameObject("DebugText");
+            debugTextObj.transform.SetParent(debugPanel.transform, false);
+
+            Text debugText = debugTextObj.AddComponent<Text>();
+            debugText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            debugText.fontSize = 14;
+            debugText.color = new Color(0.2f, 0.8f, 0.2f);
+
+            RectTransform debugTextRect = debugTextObj.GetComponent<RectTransform>();
+            debugTextRect.anchorMin = Vector2.zero;
+            debugTextRect.anchorMax = Vector2.one;
+            debugTextRect.offsetMin = new Vector2(10, 10);
+            debugTextRect.offsetMax = new Vector2(-10, -10);
+
+            PacingDebugTool debugTool = canvasObj.AddComponent<PacingDebugTool>();
+            var pacingDebugType = typeof(PacingDebugTool);
+            SetSerializedField(pacingDebugType, debugTool, "debugPanel", debugPanel);
+            SetSerializedField(pacingDebugType, debugTool, "debugText", debugText);
 
             debugPanel.SetActive(false);
         }

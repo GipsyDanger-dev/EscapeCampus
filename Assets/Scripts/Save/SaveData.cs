@@ -40,6 +40,9 @@ namespace EscapeCampus.Save
         // Truth
         public List<string> revealedTruthFragments = new List<string>();
 
+        // Pacing
+        public PacingSaveEntry pacingState = new PacingSaveEntry();
+
         public SaveData()
         {
             saveID = Guid.NewGuid().ToString();
@@ -109,6 +112,16 @@ namespace EscapeCampus.Save
         public int totalObservations;
 
         public EndingSaveEntry() { }
+    }
+
+    [Serializable]
+    public class PacingSaveEntry
+    {
+        public float tensionLevel;
+        public string currentBeat;
+        public float totalPlayTime;
+
+        public PacingSaveEntry() { }
     }
 
     [Serializable]

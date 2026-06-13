@@ -248,6 +248,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.0.0] - 2026-06-13
+
+### Added
+- ExperienceDirector singleton with EvaluateGameState/AdjustPacing/TriggerNarrativeBeat/ControlTensionCurve
+- TensionLevel system (0-100) with 5 states: Calm, Suspense, Unease, Fear, Panic
+- NarrativeBeat enum with 6 beat types: Exploration, Discovery, Horror, SetPiece, Revelation, Silence
+- Automatic pacing rules based on horror level, time, setpiece frequency, story phase
+- SafeZone component (collider trigger) with tension decay and event suppression
+- Beat rotation system with queue-based dynamic sequencing
+- Dynamic event control: ShouldAllowHorrorEvent, ShouldAllowSetPiece, SuppressRandomness
+- Final Chase preparation: escalate tension, lock world state, S14 permanent presence
+- PacingDebugTool (F12 toggle) with tension bar, current beat, next expected beat
+- PacingSaveEntry for persistence
+
+### Changed
+- SaveData now includes PacingSaveEntry (tensionLevel, currentBeat, totalPlayTime)
+- SaveManager now saves/restores pacing state
+- SceneBootstrapper now creates ExperienceDirector and PacingDebugTool
+
+### Project Structure
+- Assets/Scripts/Core/Pacing/ - TensionLevel, ExperienceDirector, SafeZone, PacingDebugTool
+
+---
+
 ## [0.0.0] - 2026-06-11
 
 ### Added

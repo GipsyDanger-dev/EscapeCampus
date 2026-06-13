@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using EscapeCampus.Core.Ending;
+using EscapeCampus.Core.Pacing;
 using EscapeCampus.Documents;
 using EscapeCampus.Evidence;
 using EscapeCampus.Horror;
@@ -278,6 +279,15 @@ namespace EscapeCampus.Save
                 data.revealedTruthFragments = truthData.revealedFragmentIDs;
             }
 
+            // Pacing
+            if (ExperienceDirector.Instance != null)
+            {
+                PacingSaveData pacingData = ExperienceDirector.Instance.GetSaveData();
+                data.pacingState.tensionLevel = pacingData.tensionLevel;
+                data.pacingState.currentBeat = pacingData.currentBeat;
+                data.pacingState.totalPlayTime = pacingData.totalPlayTime;
+            }
+
             return data;
         }
 
@@ -385,6 +395,18 @@ namespace EscapeCampus.Save
                     revealedFragmentIDs = data.revealedTruthFragments
                 };
                 TruthRevealManager.Instance.LoadSaveData(truthData);
+            }
+
+            // Pacing
+            if (ExperienceDirector.Instance != null && data.pacingState != null)
+            {
+                PacingSaveData pacingData = new PacingSaveData
+                {
+                    tensionLevel = data.pacingState.tensionLevel,
+                    currentBeat = data.pacingState.currentBeat,
+                    totalPlayTime = data.pacingState.totalPlayTime
+                };
+                ExperienceDirector.Instance.LoadSaveData(pacingData);
             }
         }
 

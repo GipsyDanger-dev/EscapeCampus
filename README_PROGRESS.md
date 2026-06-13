@@ -1021,6 +1021,172 @@ Assets/
 
 ---
 
+## Task 010 - Game Pacing & Experience Director System
+
+### Status: COMPLETED
+
+### What Was Built
+
+#### 1. Core Principle
+> Game bukan hanya sistem. Game adalah pengalaman yang diatur ritmenya: tension, relief, discovery, shock, silence.
+
+#### 2. Experience Director
+- **ExperienceDirector** singleton with:
+  - `EvaluateGameState()` — Analyze all systems for pacing
+  - `AdjustPacing()` — Modify horror/event frequency
+  - `TriggerNarrativeBeat(beat)` — Set current beat
+  - `ControlTensionCurve(target, duration)` — Smooth tension control
+  - `SetSafeZone(safe)` — Enter/exit safe zone
+  - `ShouldAllowHorrorEvent()` — Gate horror events
+  - `ShouldAllowSetPiece()` — Gate setpieces
+  - Events: `OnTensionStateChanged`, `OnBeatChanged`, `OnTensionLevelChanged`, `OnSafeZoneChanged`
+
+#### 3. Tension Curve System
+| State | Level | Description |
+|-------|-------|-------------|
+| Calm | 0-20 | Peaceful, exploring |
+| Suspense | 20-40 | Something feels off |
+| Unease | 40-60 | Active discomfort |
+| Fear | 60-80 | Real danger present |
+| Panic | 80-100 | Overwhelming terror |
+
+#### 4. Narrative Beat System
+| Beat | Purpose | Tension Effect |
+|------|---------|----------------|
+| Exploration | Player explores freely | Neutral |
+| Discovery | Finding documents/evidence | +5 |
+| Horror | Horror event active | +10 |
+| SetPiece | Scripted moment | +20 |
+| Revelation | Truth fragment revealed | +5 |
+| Silence | Breathing space | -15 |
+
+#### 5. Automatic Pacing Rules
+- Tension builds from horror level, recent events, story phase
+- Tension decays naturally over time
+- Safe zones accelerate decay
+- Beats rotate dynamically based on state
+- Too many horror events → force silence
+- Too many setpieces → force silence
+
+#### 6. Safe Zones
+- **SafeZone** component (collider trigger)
+- Player enters → tension decays faster
+- Horror events suppressed
+- Setpieces blocked
+- Narrative breathing space
+
+#### 7. Dynamic Event Control
+- `ShouldAllowHorrorEvent()` — Checks safe zone, frequency, beat
+- `ShouldAllowSetPiece()` — Checks safe zone, count, beat
+- `SuppressRandomness(duration)` — Temporarily block random events
+- `ForceNarrativeTrigger(id)` — Override for scripted moments
+
+#### 8. Final Chase Preparation
+When StoryPhase = FinalChase:
+- Tension escalates to 90+
+- WorldState locked to BrokenReality
+- Horror beat forced
+- S14 becomes permanent presence
+- Beat duration shortened (faster pacing)
+
+#### 9. Debug Tool
+- **F12** = Toggle pacing overlay
+- Shows: TensionLevel with visual bar
+- Shows: Current Beat, Next Expected Beat
+- Shows: Safe Zone status
+- Shows: Horror Level, Horror Stage
+- Shows: Story Phase
+
+### Pacing Curve Explanation
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    PACING CURVE                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  Tension                                                     │
+│  100 ┤                                           ████        │
+│      │                                         ██    ██      │
+│   80 ┤                                       ██        ██    │
+│      │                                      █            █   │
+│   60 ┤                           ████      █              █  │
+│      │                         ██    ██   █                █ │
+│   40 ┤              ████      █        █ █                  █│
+│      │            ██    ██   █          ██                   │
+│   20 ┤  ████    █        █ █                                  │
+│      │██    ██ █          █                                   │
+│    0 ┤─────────────────────────────────────────────────────  │
+│      │  Calm   Suspense  Unease   Fear    Panic              │
+│      │                                                       │
+│      │  Exploration → Discovery → Horror → Silence →         │
+│      │  Exploration → SetPiece → Revelation → Silence →      │
+│      │  Discovery → Horror → Horror → SILENCE (forced) →     │
+│      │  Exploration → Discovery → SetPiece → ...             │
+│                                                              │
+│  SAFE ZONE: Tension decays rapidly, events suppressed        │
+│  FINAL CHASE: Tension locked high, beats accelerate          │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### System Integration Diagram
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│                 EXPERIENCE DIRECTOR INTEGRATION                 │
+├───────────────────────────────────────────────────────────────┤
+│                                                                │
+│  INPUTS (What feeds the director):                             │
+│  ├─ HorrorManager → horror level, stage, events               │
+│  ├─ LevelFlowManager → story phase                             │
+│  ├─ PuzzleManager → completion rate                            │
+│  ├─ SetPieceManager → setpiece activity                        │
+│  ├─ Semester14Observer → observation frequency                 │
+│  └─ SafeZone → player location                                 │
+│                                                                │
+│  PROCESSING (What the director decides):                       │
+│  ├─ TensionLevel (0-100) → TensionState                       │
+│  ├─ NarrativeBeat rotation (queue-based)                       │
+│  ├─ Event gating (ShouldAllow*)                                │
+│  └─ Pacing adjustment (beat duration, frequency)              │
+│                                                                │
+│  OUTPUTS (What the director controls):                         │
+│  ├─ HorrorManager → delay/allow events                         │
+│  ├─ SetPieceManager → delay/allow setpieces                    │
+│  ├─ LevelFlowManager → phase transitions                       │
+│  ├─ WorldStateManager → atmosphere changes                     │
+│  └─ ExperienceDirector → tension curve                         │
+│                                                                │
+│  SAFE ZONES:                                                   │
+│  ├─ Collider-based trigger                                     │
+│  ├─ Tension decay accelerated                                  │
+│  ├─ Horror events suppressed                                   │
+│  └─ Setpieces blocked                                          │
+│                                                                │
+│  FINAL CHASE PREPARATION:                                      │
+│  ├─ Tension → 90+                                              │
+│  ├─ WorldState → BrokenReality (locked)                        │
+│  ├─ Horror beat forced                                         │
+│  ├─ S14 permanent                                              │
+│  └─ Beat duration shortened                                    │
+│                                                                │
+└───────────────────────────────────────────────────────────────┘
+```
+
+### Updated Project Structure
+```
+Assets/
+└── Scripts/
+    └── Core/
+        └── Pacing/
+            ├── TensionLevel.cs
+            ├── ExperienceDirector.cs
+            ├── SafeZone.cs
+            └── PacingDebugTool.cs
+```
+
+---
+
 ## How to Use
 
 ### Quick Start
@@ -1051,6 +1217,10 @@ Assets/
 | Reset Horror | F6 |
 | Next Story Phase | F7 |
 | Previous Story Phase | F8 |
+| Force Spawn Observation | F9 |
+| Clear All Observations | F10 |
+| Toggle S14 Debug Panel | F11 |
+| Toggle Pacing Overlay | F12 |
 | Force Spawn Observation | F9 |
 | Clear All Observations | F10 |
 | Toggle S14 Debug Panel | F11 |
