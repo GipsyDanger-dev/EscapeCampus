@@ -8,6 +8,7 @@ using EscapeCampus.Evidence;
 using EscapeCampus.Horror;
 using EscapeCampus.Horror.Semester14;
 using EscapeCampus.Horror.SetPieces;
+using EscapeCampus.Level;
 using EscapeCampus.Puzzle;
 using EscapeCampus.Save;
 using EscapeCampus.UI;
@@ -217,11 +218,25 @@ namespace EscapeCampus.Core
                 horrorTriggerObj.AddComponent<HorrorEventTrigger>();
             }
 
-            // Add Lobby Prototype Builder if not already present
-            if (FindObjectOfType<LobbyPrototypeBuilder>() == null)
+            // Add Level Layout Builder if not already present
+            if (FindObjectOfType<LevelLayoutBuilder>() == null)
             {
-                GameObject lobbyBuilder = new GameObject("LobbyPrototypeBuilder");
-                lobbyBuilder.AddComponent<LobbyPrototypeBuilder>();
+                GameObject levelBuilderObj = new GameObject("LevelLayoutBuilder");
+                levelBuilderObj.AddComponent<LevelLayoutBuilder>();
+            }
+
+            // Add Level Configurator if not already present
+            if (FindObjectOfType<LevelConfigurator>() == null)
+            {
+                GameObject levelConfigObj = new GameObject("LevelConfigurator");
+                levelConfigObj.AddComponent<LevelConfigurator>();
+            }
+
+            // Add Build Configurator if not already present
+            if (FindObjectOfType<BuildConfigurator>() == null)
+            {
+                GameObject buildConfigObj = new GameObject("BuildConfigurator");
+                buildConfigObj.AddComponent<BuildConfigurator>();
             }
 
             // Add GameManager if not present

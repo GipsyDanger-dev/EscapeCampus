@@ -272,6 +272,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.1.0] - 2026-06-13 - FINAL BUILD
+
+### Added
+- LevelLayoutBuilder constructing full Campus Library Complex (6 areas)
+- LevelConfigurator wiring all triggers, documents, evidence, puzzles, horror, setpieces
+- BuildConfigurator disabling all debug tools for release build
+- Complete level layout: Lobby → Library → Corridor → Archive → Maintenance → Graduation
+- Document placement: DOC_002 (Lobby), DOC_003/DOC_004 (Library), DOC_001 (Archive)
+- Evidence placement: EV_003 (Lobby), EV_001 (Library), EV_002 (Archive)
+- Phase transition wiring: Tutorial → EarlyInvestigation → FirstAnomaly → DeepInvestigation → RealityBreakdown → FinalPreparation → FinalChase
+- Horror event scheduling per phase
+- Safe zone in Maintenance Hall with 5x tension decay
+- Final sequence with locked horror beat and S14 constant presence
+- Ending system integration with 4 endings
+- BUILD_CHECKLIST.md with complete build/verification/risk documentation
+
+### Changed
+- SceneBootstrapper now creates LevelLayoutBuilder, LevelConfigurator, BuildConfigurator
+- Debug tools auto-disabled in release builds
+
+### Project Structure
+- Assets/Scripts/Level/ - LevelLayoutBuilder, LevelConfigurator, BuildConfigurator
+
+---
+
 ## [0.0.0] - 2026-06-11
 
 ### Added
