@@ -25,6 +25,9 @@ namespace EscapeCampus.Save
         // Puzzles
         public List<PuzzleSaveEntry> puzzleStates = new List<PuzzleSaveEntry>();
 
+        // Horror
+        public HorrorSaveEntry horrorState = new HorrorSaveEntry();
+
         public SaveData()
         {
             saveID = Guid.NewGuid().ToString();
@@ -49,6 +52,15 @@ namespace EscapeCampus.Save
             this.puzzleID = id;
             this.state = state;
         }
+    }
+
+    [Serializable]
+    public class HorrorSaveEntry
+    {
+        public float horrorLevel;
+        public List<string> triggeredEventIDs = new List<string>();
+
+        public HorrorSaveEntry() { }
     }
 
     [Serializable]

@@ -4,6 +4,7 @@ using System.IO;
 using System.Collections.Generic;
 using EscapeCampus.Documents;
 using EscapeCampus.Evidence;
+using EscapeCampus.Horror;
 using EscapeCampus.Puzzle;
 
 namespace EscapeCampus.Save
@@ -233,6 +234,14 @@ namespace EscapeCampus.Save
                 }
             }
 
+            // Horror
+            if (HorrorManager.Instance != null)
+            {
+                HorrorSaveData horrorData = HorrorManager.Instance.GetSaveData();
+                data.horrorState.horrorLevel = horrorData.horrorLevel;
+                data.horrorState.triggeredEventIDs = new List<string>(horrorData.triggeredEventIDs);
+            }
+
             return data;
         }
 
@@ -287,6 +296,17 @@ namespace EscapeCampus.Save
                     }
                 }
                 PuzzleManager.Instance.LoadSaveData(puzzleDict);
+            }
+
+            // Horror
+            if (HorrorManager.Instance != null && data.horrorState != null)
+            {
+                HorrorSaveData horrorData = new HorrorSaveData
+                {
+                    horrorLevel = data.horrorState.horrorLevel,
+                    triggeredEventIDs = data.horrorState.triggeredEventIDs
+                };
+                HorrorManager.Instance.LoadSaveData(horrorData);
             }
         }
 

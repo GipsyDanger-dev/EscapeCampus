@@ -5,6 +5,7 @@ using EscapeCampus.Player;
 using EscapeCampus.Interaction;
 using EscapeCampus.Documents;
 using EscapeCampus.Evidence;
+using EscapeCampus.Horror;
 using EscapeCampus.Puzzle;
 using EscapeCampus.Save;
 using EscapeCampus.UI;
@@ -111,6 +112,12 @@ namespace EscapeCampus.Core
                 puzzleManagerObj.AddComponent<PuzzleManager>();
             }
 
+            if (HorrorManager.Instance == null)
+            {
+                GameObject horrorManagerObj = new GameObject("HorrorManager");
+                horrorManagerObj.AddComponent<HorrorManager>();
+            }
+
             // UI Canvas
             Canvas canvas = FindObjectOfType<Canvas>();
             if (canvas == null)
@@ -143,6 +150,16 @@ namespace EscapeCampus.Core
 
                 // Puzzle Debug Tool
                 CreatePuzzleDebugTool(canvasObj);
+
+                // Horror Debug Tool
+                CreateHorrorDebugTool(canvasObj);
+            }
+
+            // Horror Event Trigger (on a separate object)
+            if (FindObjectOfType<HorrorEventTrigger>() == null)
+            {
+                GameObject horrorTriggerObj = new GameObject("HorrorEventTrigger");
+                horrorTriggerObj.AddComponent<HorrorEventTrigger>();
             }
 
             // Add Lobby Prototype Builder if not already present
@@ -733,6 +750,11 @@ namespace EscapeCampus.Core
         private void CreatePuzzleDebugTool(GameObject canvasObj)
         {
             PuzzleDebugTool puzzleDebug = canvasObj.AddComponent<PuzzleDebugTool>();
+        }
+
+        private void CreateHorrorDebugTool(GameObject canvasObj)
+        {
+            HorrorDebugTool horrorDebug = canvasObj.AddComponent<HorrorDebugTool>();
         }
 
         private void CreateButton(Transform parent, string name, string text, Vector2 anchor, UnityEngine.Events.UnityAction onClick)

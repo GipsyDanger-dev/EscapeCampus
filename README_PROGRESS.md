@@ -282,6 +282,102 @@ Assets/
 
 ---
 
+## Task 005 - Horror Foundation System
+
+### Status: COMPLETED
+
+### What Was Built
+
+#### 1. Horror Level System
+- **HorrorManager** singleton with:
+  - Horror level range: 0-100
+  - `SetHorrorLevel(level)` — Set absolute level
+  - `AddHorrorLevel(amount)` — Add to current level
+  - `GetHorrorLevel()` — Get current level
+  - `GetHorrorStage()` — Get current stage
+  - Events: `OnHorrorLevelChanged`, `OnHorrorStageChanged`, `OnHorrorEventTriggered`
+  - Entity hooks: `OnEscalationForEntity`, `OnStageEscalation`
+
+#### 2. Horror Stages
+| Stage | Level | Description |
+|-------|-------|-------------|
+| Calm | 0-20 | Normal atmosphere |
+| Unease | 20-40 | Subtle discomfort |
+| Disturbance | 40-60 | Noticeable anomalies |
+| Paranoia | 60-80 | Persistent dread |
+| Collapse | 80-100 | Reality breaking down |
+
+#### 3. Horror Event System
+- **HorrorEvent** abstract base class with:
+  - `eventID`, `eventName`, `eventType`
+  - `minHorrorLevel` — Minimum level to trigger
+  - `cooldown` — Minimum seconds between triggers (default 30s)
+  - `isOneTime` — Can only trigger once
+  - `CanExecute()` — Check if event can run
+  - `Execute()` — Run the event
+
+#### 4. Five Minimal Horror Events
+| Event | Type | Description |
+|-------|------|-------------|
+| LightFlickerEvent | Environmental | Lights flicker erratically |
+| WhisperAudioEvent | Audio | 3D spatial whispers play |
+| DoorCloseEvent | Environmental | Door closes on its own |
+| DocumentTextShiftEvent | UI | Document text briefly corrupts |
+| UIGlitchEvent | UI | Screen-wide glitch overlay |
+
+#### 5. Event Trigger System
+- **HorrorEventTrigger** with:
+  - Weighted random triggering based on horror stage
+  - Minimum 30s cooldown between events
+  - Time threshold (60s before first event)
+  - Trigger contexts: puzzle solved, document collected, evidence collected, stage change
+  - Stage-weighted probability (Calm: 10%, Unease: 30%, Disturbance: 50%, Paranoia: 70%, Collapse: 90%)
+
+#### 6. Horror Escalation
+- Per puzzle solved: +10 horror level
+- Per evidence collected: +5 horror level
+- Per document collected: +3 horror level
+
+#### 7. Save Integration
+- Horror level saved/restored
+- Triggered event IDs saved/restored
+- Autosave on horror events
+
+#### 8. Debug Tools
+- **F4** = Increase horror level by 10
+- **F5** = Decrease horror level by 10
+- **F6** = Reset horror system
+
+#### 9. Semester 14 Hooks
+- `OnEscalationForEntity` — Entity can subscribe to level changes
+- `OnStageEscalation` — Entity can subscribe to stage transitions
+- Hooks are one-way (Horror → Entity)
+- Entity behavior responds to horror level, not vice versa
+
+### Horror Philosophy
+> Horror bukan monster. Horror adalah perubahan kecil yang tidak konsisten, ketidaksesuaian realitas, gangguan persepsi pemain.
+
+### Updated Project Structure
+```
+Assets/
+└── Scripts/
+    └── Horror/
+        ├── HorrorLevel.cs
+        ├── HorrorManager.cs
+        ├── HorrorEvent.cs
+        ├── HorrorEventTrigger.cs
+        ├── HorrorDebugTool.cs
+        ├── SEMESTER14_HOOKS.md
+        └── Events/
+            ├── LightFlickerEvent.cs
+            ├── WhisperAudioEvent.cs
+            ├── DoorCloseEvent.cs
+            ├── DocumentTextShiftEvent.cs
+            └── UIGlitchEvent.cs
+```
+
+---
+
 ## How to Use
 
 ### Quick Start
@@ -307,6 +403,9 @@ Assets/
 | Save Debug Overlay | F1 |
 | Unlock All Puzzles | F2 |
 | Solve Current Puzzle | F3 |
+| Increase Horror Level | F4 |
+| Decrease Horror Level | F5 |
+| Reset Horror | F6 |
 
 ---
 
@@ -315,13 +414,16 @@ Assets/
 - **Assembly Definitions** used for clean compilation
 - **No external assets** - all code-based
 - **Prototype-first** approach - visual polish later
-- **Singleton pattern** for managers (DocumentManager, EvidenceManager, SaveManager, PuzzleManager)
-- **Event-driven** architecture for UI updates, autosave, and puzzle state
+- **Singleton pattern** for managers (DocumentManager, EvidenceManager, SaveManager, PuzzleManager, HorrorManager)
+- **Event-driven** architecture for UI updates, autosave, puzzle state, and horror triggers
 - **ScriptableObject** data architecture for documents, evidence, and puzzle requirements
 - **JSON serialization** for save data (human-readable, debuggable)
 - **Save files** stored in `Application.persistentDataPath/Saves/`
-- **Abstract base class** pattern for puzzles (PuzzleBase)
+- **Abstract base class** pattern for puzzles (PuzzleBase) and horror events (HorrorEvent)
 - **Requirement validation** pattern (documents + evidence checks)
+- **Weighted random** triggering for horror events based on stage
+- **Cooldown system** prevents horror event spam (minimum 30s)
+- **Entity hooks** prepared for Semester 14 (one-way Horror → Entity)
 
 ---
 

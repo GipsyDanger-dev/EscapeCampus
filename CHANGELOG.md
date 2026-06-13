@@ -108,6 +108,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.5.0] - 2026-06-13
+
+### Added
+- HorrorManager singleton with horror level (0-100) and stage system
+- HorrorStage enum (Calm, Unease, Disturbance, Paranoia, Collapse)
+- HorrorEvent base class with 4 event types (Audio, Visual, Environmental, UI)
+- LightFlickerEvent - environmental light flicker effect
+- WhisperAudioEvent - 3D spatial audio whispers
+- DoorCloseEvent - mysterious door closing without player interaction
+- DocumentTextShiftEvent - temporary text corruption in document viewer
+- UIGlitchEvent - screen-wide UI glitch overlay
+- HorrorEventTrigger with weighted random triggering and cooldown (min 30s)
+- Trigger conditions: puzzle solved, document collected, evidence collected, stage change
+- Horror level escalation per game action (puzzle +10, evidence +5, document +3)
+- HorrorSaveData for persistence (horror level, triggered events)
+- HorrorDebugTool (F4 increase, F5 decrease, F6 reset)
+- SEMESTER14_HOOKS.md documenting entity integration points
+
+### Changed
+- SaveData now includes HorrorSaveEntry (horrorLevel, triggeredEventIDs)
+- SaveManager now saves/restores horror state
+- SceneBootstrapper now creates HorrorManager, HorrorEventTrigger, HorrorDebugTool
+
+### Project Structure
+- Assets/Scripts/Horror/ - HorrorLevel, HorrorManager, HorrorEvent, HorrorEventTrigger, HorrorDebugTool, Events/
+
+---
+
 ## [0.0.0] - 2026-06-11
 
 ### Added
