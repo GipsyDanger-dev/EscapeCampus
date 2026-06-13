@@ -6,6 +6,7 @@ using EscapeCampus.Interaction;
 using EscapeCampus.Documents;
 using EscapeCampus.Evidence;
 using EscapeCampus.Horror;
+using EscapeCampus.Horror.Semester14;
 using EscapeCampus.Puzzle;
 using EscapeCampus.Save;
 using EscapeCampus.UI;
@@ -130,6 +131,12 @@ namespace EscapeCampus.Core
                 worldStateObj.AddComponent<WorldStateManager>();
             }
 
+            if (Semester14Observer.Instance == null)
+            {
+                GameObject observerObj = new GameObject("Semester14Observer");
+                observerObj.AddComponent<Semester14Observer>();
+            }
+
             // UI Canvas
             Canvas canvas = FindObjectOfType<Canvas>();
             if (canvas == null)
@@ -168,6 +175,9 @@ namespace EscapeCampus.Core
 
                 // Level Flow Debug Tool
                 CreateLevelFlowDebugTool(canvasObj);
+
+                // Semester 14 Debug Tool
+                CreateSemester14DebugTool(canvasObj);
             }
 
             // Horror Event Trigger (on a separate object)
@@ -804,6 +814,42 @@ namespace EscapeCampus.Core
             var debugType = typeof(LevelFlowDebugTool);
             SetSerializedField(debugType, debugTool, "phaseDisplayPanel", phasePanel);
             SetSerializedField(debugType, debugTool, "phaseText", phaseText);
+        }
+
+        private void CreateSemester14DebugTool(GameObject canvasObj)
+        {
+            // Debug panel at right side
+            GameObject debugPanel = new GameObject("Semester14DebugPanel");
+            debugPanel.transform.SetParent(canvasObj.transform, false);
+
+            Image debugBg = debugPanel.AddComponent<Image>();
+            debugBg.color = new Color(0, 0, 0, 0.85f);
+
+            RectTransform debugRect = debugPanel.GetComponent<RectTransform>();
+            debugRect.anchorMin = new Vector2(0.75f, 0.3f);
+            debugRect.anchorMax = new Vector2(1f, 0.7f);
+            debugRect.sizeDelta = Vector2.zero;
+
+            GameObject debugTextObj = new GameObject("DebugText");
+            debugTextObj.transform.SetParent(debugPanel.transform, false);
+
+            Text debugText = debugTextObj.AddComponent<Text>();
+            debugText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            debugText.fontSize = 14;
+            debugText.color = new Color(0.8f, 0.2f, 0.2f);
+
+            RectTransform debugTextRect = debugTextObj.GetComponent<RectTransform>();
+            debugTextRect.anchorMin = Vector2.zero;
+            debugTextRect.anchorMax = Vector2.one;
+            debugTextRect.offsetMin = new Vector2(10, 10);
+            debugTextRect.offsetMax = new Vector2(-10, -10);
+
+            Semester14DebugTool debugTool = canvasObj.AddComponent<Semester14DebugTool>();
+            var s14DebugType = typeof(Semester14DebugTool);
+            SetSerializedField(s14DebugType, debugTool, "debugPanel", debugPanel);
+            SetSerializedField(s14DebugType, debugTool, "debugText", debugText);
+
+            debugPanel.SetActive(false);
         }
 
         private void CreateButton(Transform parent, string name, string text, Vector2 anchor, UnityEngine.Events.UnityAction onClick)

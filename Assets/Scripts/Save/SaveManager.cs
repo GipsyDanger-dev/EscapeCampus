@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using EscapeCampus.Documents;
 using EscapeCampus.Evidence;
 using EscapeCampus.Horror;
+using EscapeCampus.Horror.Semester14;
 using EscapeCampus.Puzzle;
 
 namespace EscapeCampus.Save
@@ -242,6 +243,14 @@ namespace EscapeCampus.Save
                 data.horrorState.triggeredEventIDs = new List<string>(horrorData.triggeredEventIDs);
             }
 
+            // Semester 14 Observations
+            if (Semester14Observer.Instance != null)
+            {
+                ObservationSaveData obsData = Semester14Observer.Instance.GetSaveData();
+                data.observationState.totalObservations = obsData.totalObservations;
+                data.observationState.lastObservationTime = obsData.lastObservationTime;
+            }
+
             return data;
         }
 
@@ -307,6 +316,17 @@ namespace EscapeCampus.Save
                     triggeredEventIDs = data.horrorState.triggeredEventIDs
                 };
                 HorrorManager.Instance.LoadSaveData(horrorData);
+            }
+
+            // Semester 14 Observations
+            if (Semester14Observer.Instance != null && data.observationState != null)
+            {
+                ObservationSaveData obsData = new ObservationSaveData
+                {
+                    totalObservations = data.observationState.totalObservations,
+                    lastObservationTime = data.observationState.lastObservationTime
+                };
+                Semester14Observer.Instance.LoadSaveData(obsData);
             }
         }
 

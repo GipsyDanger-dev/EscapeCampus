@@ -512,6 +512,142 @@ Assets/
 
 ---
 
+## Task 007 - Semester 14 Observation System (Presence Layer 1)
+
+### Status: COMPLETED
+
+### What Was Built
+
+#### 1. Core Principle
+> Semester 14 TIDAK MENYERANG. Semester 14 mengamati, mempengaruhi lingkungan, muncul secara tidak konsisten, tidak bisa dijelaskan oleh player.
+
+#### 2. Observation Types
+| Type | Behavior | Visibility |
+|------|----------|------------|
+| Static | Entity visible in distance, motionless | Always visible |
+| Peripheral | Only at camera edge, disappears when looked at | PeripheralVisibility component |
+| Mirror | Only in reflections, very transparent | Low alpha |
+| MissingFrame | Brief flashes at intervals | MissingFrameBlink component |
+
+#### 3. Spawn Rules
+- **Horror Level:** >= 40 required
+- **Story Phase:** >= FirstAnomaly required
+- **Cooldown:** 60-120 seconds (random)
+- **Chance:** 30% base, increases with horror stage
+- **Duration:** 5 seconds per observation
+- **No interaction:** Entity has no collider
+
+#### 4. Environment Response
+When Semester 14 is observed:
+- Lights slightly desync (random flicker)
+- Audio drops for 0.5 seconds
+- UI flicker micro event
+- Nearby doors randomly lock/unlock
+
+#### 5. Data Tracking
+- Total observations count
+- Last observation timestamp
+- Observation type frequency
+- All persisted in save data
+
+#### 6. Debug Tools
+- **F9** = Force spawn observation
+- **F10** = Clear all observations
+- **F11** = Toggle debug panel
+- Debug panel shows: active type, distance to player, total observations, last trigger time
+
+### Observation Behavior Explanation
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                 SEMESTER 14 OBSERVATION FLOW                 │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  CanSpawn() Check:                                           │
+│  ├─ Not already observing?                                   │
+│  ├─ HorrorLevel >= 40?                                       │
+│  └─ StoryPhase >= FirstAnomaly?                              │
+│         │                                                    │
+│         ▼                                                    │
+│  Random Chance (30-50%)                                      │
+│         │                                                    │
+│         ▼                                                    │
+│  SelectObservationType()                                     │
+│  ├─ Level < 50: Static (70%) / Peripheral (30%)             │
+│  ├─ Level 50-70: Static (30%) / Peripheral (30%) / Mirror   │
+│  └─ Level > 70: All types including MissingFrame            │
+│         │                                                    │
+│         ▼                                                    │
+│  SpawnObservation()                                          │
+│  ├─ Create dark capsule (no collider)                        │
+│  ├─ Apply type behavior                                      │
+│  ├─ Trigger environment response                             │
+│  │   ├─ Light desync                                         │
+│  │   ├─ Audio drop (0.5s)                                    │
+│  │   ├─ UI flicker                                           │
+│  │   └─ Door change                                          │
+│  └─ Auto despawn after 5s                                    │
+│         │                                                    │
+│         ▼                                                    │
+│  ResetCooldown (60-120s)                                     │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Integration with Horror & Story System
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│              SEMESTER 14 INTEGRATION DIAGRAM                   │
+├───────────────────────────────────────────────────────────────┤
+│                                                                │
+│  HorrorManager ──→ Semester14Observer                         │
+│       │                │                                       │
+│       │                ├─ Reads horror level                   │
+│       │                ├─ Reads horror stage                   │
+│       │                └─ Subscribes to stage changes          │
+│       │                                                        │
+│  LevelFlowManager ──→ Semester14Observer                      │
+│       │                │                                       │
+│       │                └─ Checks StoryPhase >= FirstAnomaly    │
+│       │                                                        │
+│  WorldStateManager ←─ Semester14Observer                      │
+│       │                │                                       │
+│       │                └─ Door lock/unlock changes             │
+│       │                                                        │
+│  HorrorEventTrigger ←─ Semester14Observer                    │
+│                            │                                   │
+│                            └─ Triggers UIGlitchEvent           │
+│                                                                │
+│  SaveManager ──→ Semester14Observer                           │
+│                        │                                       │
+│                        └─ Saves/loads observation data         │
+│                                                                │
+│  Entity Hooks (Semester 14):                                  │
+│  ├─ OnObservationStarted(type)                                │
+│  ├─ OnObservationEnded(type)                                  │
+│  └─ OnEnvironmentResponse                                     │
+│                                                                │
+│  NO CHASE. NO COMBAT. NO INTERACTION.                         │
+│                                                                │
+└───────────────────────────────────────────────────────────────┘
+```
+
+### Updated Project Structure
+```
+Assets/
+└── Scripts/
+    └── Horror/
+        └── Semester14/
+            ├── ObservationType.cs
+            ├── Semester14Observer.cs
+            ├── PeripheralVisibility.cs
+            ├── MissingFrameBlink.cs
+            └── Semester14DebugTool.cs
+```
+
+---
+
 ## How to Use
 
 ### Quick Start
@@ -542,6 +678,9 @@ Assets/
 | Reset Horror | F6 |
 | Next Story Phase | F7 |
 | Previous Story Phase | F8 |
+| Force Spawn Observation | F9 |
+| Clear All Observations | F10 |
+| Toggle S14 Debug Panel | F11 |
 
 ---
 

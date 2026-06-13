@@ -161,6 +161,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.7.0] - 2026-06-13
+
+### Added
+- Semester14Observer singleton with passive entity observation system
+- 4 observation types: Static, Peripheral, Mirror, MissingFrame
+- ObservationType enum with descriptions
+- Spawn rules: HorrorLevel >= 40, StoryPhase >= FirstAnomaly, cooldown 60-120s
+- Weighted spawn chance that increases with horror stage
+- No interaction rule: entity has no collider, cannot be triggered manually
+- Environment response on observation: light desync, audio drop, UI flicker, door change
+- PeripheralVisibility component: only visible when not directly looked at
+- MissingFrameBlink component: brief flashes at intervals
+- Observation tracking: total observations, last time, type frequency
+- ObservationSaveEntry for save persistence
+- Semester14DebugTool (F9 force spawn, F10 clear, F11 toggle panel)
+- ObservationPoint system for predefined spawn locations
+
+### Changed
+- SaveData now includes ObservationSaveEntry
+- SaveManager now saves/restores observation data
+- SceneBootstrapper now creates Semester14Observer and Semester14DebugTool
+
+### Project Structure
+- Assets/Scripts/Horror/Semester14/ - ObservationType, Semester14Observer, PeripheralVisibility, MissingFrameBlink, Semester14DebugTool
+
+---
+
 ## [0.0.0] - 2026-06-11
 
 ### Added

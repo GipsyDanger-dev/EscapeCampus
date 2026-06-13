@@ -28,6 +28,9 @@ namespace EscapeCampus.Save
         // Horror
         public HorrorSaveEntry horrorState = new HorrorSaveEntry();
 
+        // Semester 14 Observations
+        public ObservationSaveEntry observationState = new ObservationSaveEntry();
+
         public SaveData()
         {
             saveID = Guid.NewGuid().ToString();
@@ -61,6 +64,15 @@ namespace EscapeCampus.Save
         public List<string> triggeredEventIDs = new List<string>();
 
         public HorrorSaveEntry() { }
+    }
+
+    [Serializable]
+    public class ObservationSaveEntry
+    {
+        public int totalObservations;
+        public float lastObservationTime;
+
+        public ObservationSaveEntry() { }
     }
 
     [Serializable]
