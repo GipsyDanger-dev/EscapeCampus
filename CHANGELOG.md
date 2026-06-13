@@ -188,6 +188,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.8.0] - 2026-06-13
+
+### Added
+- SetPieceManager singleton with Register/Trigger/Complete/GetActive API
+- SetPieceState enum (Idle, Triggering, Active, Ending, Completed)
+- SetPieceType enum (ForcedCamera, EnvironmentalCollapse, CorridorEvent, ObservationFreeze, EscapeSequence)
+- SetPieceBase abstract class with trigger conditions, fail-safe recovery, timeout
+- ScriptedCameraController with ForceLookAt, SlowDrag, MicroHeadShake, SetFOV, SmoothRotation
+- SetPieceTriggerVolume for automatic trigger when player enters area
+- LibraryWhisperCorridorSetPiece (SP_LIBRARY_WHISPER_CORRIDOR) - first mandatory setpiece
+  - Lights turn off behind player
+  - Whisper audio increases
+  - Door closes by itself
+  - Semester 14 appears for 1 frame behind glass
+  - Camera forces look back
+  - Nothing is there
+- SetPieceSaveEntry for save persistence
+- Fail-safe system: graceful skip, restore player control, continue game
+
+### Changed
+- SaveData now includes List<SetPieceSaveEntry>
+- SaveManager now saves/restores setpiece states
+- SceneBootstrapper now creates SetPieceManager
+
+### Project Structure
+- Assets/Scripts/Horror/SetPieces/ - SetPieceState, SetPieceManager, SetPieceBase, ScriptedCameraController, SetPieceTriggerVolume, LibraryWhisperCorridorSetPiece
+
+---
+
 ## [0.0.0] - 2026-06-11
 
 ### Added

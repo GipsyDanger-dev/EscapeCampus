@@ -6,6 +6,7 @@ using EscapeCampus.Documents;
 using EscapeCampus.Evidence;
 using EscapeCampus.Horror;
 using EscapeCampus.Horror.Semester14;
+using EscapeCampus.Horror.SetPieces;
 using EscapeCampus.Puzzle;
 
 namespace EscapeCampus.Save
@@ -251,6 +252,13 @@ namespace EscapeCampus.Save
                 data.observationState.lastObservationTime = obsData.lastObservationTime;
             }
 
+            // SetPieces
+            if (SetPieceManager.Instance != null)
+            {
+                SetPieceSaveData spData = SetPieceManager.Instance.GetSaveData();
+                data.setPieceStates = spData.entries;
+            }
+
             return data;
         }
 
@@ -327,6 +335,13 @@ namespace EscapeCampus.Save
                     lastObservationTime = data.observationState.lastObservationTime
                 };
                 Semester14Observer.Instance.LoadSaveData(obsData);
+            }
+
+            // SetPieces
+            if (SetPieceManager.Instance != null && data.setPieceStates != null)
+            {
+                SetPieceSaveData spData = new SetPieceSaveData { entries = data.setPieceStates };
+                SetPieceManager.Instance.LoadSaveData(spData);
             }
         }
 

@@ -31,6 +31,9 @@ namespace EscapeCampus.Save
         // Semester 14 Observations
         public ObservationSaveEntry observationState = new ObservationSaveEntry();
 
+        // SetPieces
+        public List<SetPieceSaveEntry> setPieceStates = new List<SetPieceSaveEntry>();
+
         public SaveData()
         {
             saveID = Guid.NewGuid().ToString();
@@ -73,6 +76,21 @@ namespace EscapeCampus.Save
         public float lastObservationTime;
 
         public ObservationSaveEntry() { }
+    }
+
+    [Serializable]
+    public class SetPieceSaveEntry
+    {
+        public string setPieceID;
+        public string state;
+
+        public SetPieceSaveEntry() { }
+
+        public SetPieceSaveEntry(string id, string state)
+        {
+            this.setPieceID = id;
+            this.state = state;
+        }
     }
 
     [Serializable]

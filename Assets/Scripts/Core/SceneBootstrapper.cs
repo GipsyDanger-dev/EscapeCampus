@@ -7,6 +7,7 @@ using EscapeCampus.Documents;
 using EscapeCampus.Evidence;
 using EscapeCampus.Horror;
 using EscapeCampus.Horror.Semester14;
+using EscapeCampus.Horror.SetPieces;
 using EscapeCampus.Puzzle;
 using EscapeCampus.Save;
 using EscapeCampus.UI;
@@ -135,6 +136,12 @@ namespace EscapeCampus.Core
             {
                 GameObject observerObj = new GameObject("Semester14Observer");
                 observerObj.AddComponent<Semester14Observer>();
+            }
+
+            if (SetPieceManager.Instance == null)
+            {
+                GameObject setPieceObj = new GameObject("SetPieceManager");
+                setPieceObj.AddComponent<SetPieceManager>();
             }
 
             // UI Canvas

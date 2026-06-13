@@ -648,6 +648,184 @@ Assets/
 
 ---
 
+## Task 008 - Scripted Horror Set-Piece System
+
+### Status: COMPLETED
+
+### What Was Built
+
+#### 1. Core Principle
+> Horror tidak hanya random. Horror harus disengaja, terstruktur, memorable, unavoidable.
+
+#### 2. SetPiece Manager
+- **SetPieceManager** singleton with:
+  - `RegisterSetPiece(setPiece)` — Register in system
+  - `TriggerSetPiece(id)` — Start execution
+  - `CompleteSetPiece(id)` — Mark as done
+  - `GetActiveSetPiece()` — Get currently running setpiece
+  - Events: `OnSetPieceTriggered`, `OnSetPieceCompleted`, `OnSetPieceStateChanged`
+
+#### 3. SetPiece State System
+| State | Description |
+|-------|-------------|
+| Idle | Ready to trigger |
+| Triggering | Conditions met, starting |
+| Active | Currently executing |
+| Ending | Winding down |
+| Completed | Done, won't trigger again |
+
+#### 4. SetPiece Types
+| Type | Description |
+|------|-------------|
+| ForcedCamera | Camera control override |
+| EnvironmentalCollapse | World changes around player |
+| CorridorEvent | Linear sequence in hallway |
+| ObservationFreeze | Time freeze with entity |
+| EscapeSequence | Running sequence (no AI yet) |
+
+#### 5. Scripted Camera Controller
+- **ScriptedCameraController** with:
+  - `ForceLookAt(target, duration)` — Smooth look at point
+  - `SlowDrag(direction, speed, duration)` — Gradual camera movement
+  - `MicroHeadShake(intensity, duration)` — Subtle shake effect
+  - `SetFOV(targetFOV, duration)` — Zoom effect
+  - `SmoothRotation(target, duration)` — Smooth rotation
+
+#### 6. Trigger System
+- **SetPieceTriggerVolume** — Collider-based trigger when player enters
+- Conditions: StoryPhase, HorrorLevel, PuzzleCompletion
+- Supports both manual and automatic trigger
+
+#### 7. First Mandatory SetPiece: SP_LIBRARY_WHISPER_CORRIDOR
+**Description:** Player walks in library corridor
+
+**Sequence:**
+1. Lights slowly turn off behind player (3s)
+2. Whisper audio increases (2s)
+3. Door at end closes by itself (0.8s)
+4. Semester 14 appears for 1 frame behind glass (0.1s)
+5. Camera forces look backward (1.5s)
+6. Nothing is there — pause (1.5s)
+7. Player control restored
+
+#### 8. Fail-Safe System
+If setpiece fails:
+- Skip gracefully
+- Restore player control
+- Release camera control
+- Mark as completed (prevent re-trigger)
+- Continue game
+- **NO GAME BREAKS**
+
+#### 9. Save Integration
+- SetPiece states saved/loaded
+- Completed setpieces won't re-trigger
+
+### SetPiece Flow Explanation
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   SETPIECE LIFECYCLE                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  1. REGISTRATION                                             │
+│     └─ SetPieceBase registers with SetPieceManager           │
+│                                                              │
+│  2. TRIGGER CONDITIONS                                       │
+│     ├─ StoryPhase >= requiredPhase                           │
+│     ├─ HorrorLevel >= requiredHorrorLevel                    │
+│     ├─ PuzzleCompleted(requiredPuzzleID)                     │
+│     └─ Player enters trigger volume                          │
+│                                                              │
+│  3. TRIGGER                                                  │
+│     ├─ SetPieceManager checks:                               │
+│     │   ├─ Not already active?                               │
+│     │   ├─ Not completed?                                    │
+│     │   └─ CanTrigger() conditions met?                      │
+│     └─ State: Idle → Triggering → Active                     │
+│                                                              │
+│  4. EXECUTION                                                │
+│     ├─ LockPlayerControl()                                   │
+│     ├─ ScriptedCameraController.TakeControl()                │
+│     ├─ Execute phases (coroutine)                            │
+│     │   ├─ Phase 1: Lights off behind                        │
+│     │   ├─ Phase 2: Whisper increases                        │
+│     │   ├─ Phase 3: Door closes                              │
+│     │   ├─ Phase 4: S14 flash (1 frame)                      │
+│     │   ├─ Phase 5: Force look back                          │
+│     │   └─ Phase 6: Nothing there                            │
+│     └─ State: Active → Ending → Completed                    │
+│                                                              │
+│  5. COMPLETION                                               │
+│     ├─ UnlockPlayerControl()                                 │
+│     ├─ CameraController.ReleaseControl()                     │
+│     └─ SetPieceManager.CompleteSetPiece()                    │
+│                                                              │
+│  6. FAIL-SAFE (if error)                                     │
+│     ├─ RestorePlayerControl()                                │
+│     ├─ CameraController.ReleaseControl()                     │
+│     └─ Mark as Completed (prevent re-trigger)                │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Integration Diagram
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│                   SETPIECE INTEGRATION                         │
+├───────────────────────────────────────────────────────────────┤
+│                                                                │
+│  LevelFlowManager ──→ SetPieceBase                            │
+│       │                │                                       │
+│       │                └─ Checks requiredPhase                 │
+│       │                                                        │
+│  HorrorManager ──→ SetPieceBase                               │
+│       │                │                                       │
+│       │                └─ Checks requiredHorrorLevel           │
+│       │                                                        │
+│  PuzzleManager ──→ SetPieceBase                               │
+│       │                │                                       │
+│       │                └─ Checks requiredPuzzleID              │
+│       │                                                        │
+│  Semester14Observer ←─ LibraryWhisperCorridorSetPiece         │
+│       │                                                        │
+│       └─ S14 flash during setpiece                            │
+│                                                                │
+│  WorldStateManager ←─ SetPieceBase                            │
+│       │                                                        │
+│       └─ Door/light changes during setpiece                   │
+│                                                                │
+│  ScriptedCameraController                                     │
+│       │                                                        │
+│       ├─ ForceLookAt                                          │
+│       ├─ SlowDrag                                             │
+│       ├─ MicroHeadShake                                       │
+│       └─ SetFOV                                               │
+│                                                                │
+│  SaveManager ──→ SetPieceManager                              │
+│                        │                                       │
+│                        └─ Saves/loads setpiece states          │
+│                                                                │
+└───────────────────────────────────────────────────────────────┘
+```
+
+### Updated Project Structure
+```
+Assets/
+└── Scripts/
+    └── Horror/
+        └── SetPieces/
+            ├── SetPieceState.cs
+            ├── SetPieceManager.cs
+            ├── SetPieceBase.cs
+            ├── ScriptedCameraController.cs
+            ├── SetPieceTriggerVolume.cs
+            └── LibraryWhisperCorridorSetPiece.cs
+```
+
+---
+
 ## How to Use
 
 ### Quick Start
