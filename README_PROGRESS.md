@@ -826,6 +826,201 @@ Assets/
 
 ---
 
+## Task 009 - Narrative Revelation & Ending Structure System
+
+### Status: COMPLETED
+
+### What Was Built
+
+#### 1. Core Principle
+> Semua sistem sebelumnya harus mengarah ke: satu kebenaran, satu konflik utama, satu final decision.
+
+#### 2. Ending Manager
+- **EndingManager** singleton with:
+  - `EvaluateEndingCondition()` — Check which ending is achievable
+  - `TriggerEnding(type)` — Start ending sequence
+  - `MakeFinalDecision(decision)` — Player makes irreversible choice
+  - `SetEndingPhase(phase)` — Progress through ending sequence
+  - Events: `OnEndingPhaseChanged`, `OnEndingTriggered`, `OnFinalDecisionMade`
+
+#### 3. Ending Types
+| Ending | Name | Description |
+|--------|------|-------------|
+| Good | The End of the Loop | Destroy ritual, Raka is free |
+| Bad | The Cycle Continues | Escape but loop continues |
+| Secret | The Third Path | Join the system |
+| True | The Truth Revealed | Semester 14 is Raka |
+
+#### 4. Ending Conditions
+| Ending | Docs | Evidence | Puzzles | Horror Peak | S14 Obs | Phase |
+|--------|------|----------|---------|-------------|---------|-------|
+| Good | 4+ (1 crit) | 3+ (1 crit) | 2+ | 50+ | 3+ | FinalPrep |
+| Bad | 2+ | 1+ | 1+ | 30+ | 1+ | DeepInv |
+| Secret | 5+ (1 crit) | 4+ (1 crit) | 3+ | 40-70 | 5+ | Reality |
+| True | 5+ (1 crit) | 4+ (1 crit) | 3+ | 70+ | 7+ | FinalPrep |
+
+#### 5. Truth Reveal Manager
+- **TruthRevealManager** with 6 truth fragments:
+  1. The Campus History (2+ documents)
+  2. The Ritual (1+ critical document)
+  3. The Loop (2+ puzzles)
+  4. Semester 14's Identity (5+ observations, 3+ evidence)
+  5. Raka's Story (4+ documents, 4+ evidence)
+  6. The Final Choice (FinalPreparation phase)
+- `GenerateFinalNarrativeSummary()` — Complete story recap
+
+#### 6. Final Decision
+| Decision | Result | Description |
+|----------|--------|-------------|
+| Destroy Ritual | Good Ending | End the loop, campus collapses |
+| Continue Loop | Bad Ending | Escape, but cycle continues |
+| Escape Without Truth | Secret Ending | Join the system |
+
+#### 7. Ending Sequence Flow
+```
+Final SetPiece triggers
+        │
+        ▼
+WorldState = BrokenReality
+        │
+        ▼
+S14 becomes constant presence
+        │
+        ▼
+Player teleported to Graduation Hall
+        │
+        ▼
+Final Decision UI appears
+        │
+        ├─ Destroy Ritual → Good Ending
+        ├─ Continue Loop → Bad Ending
+        └─ Escape → Secret Ending
+        │
+        ▼
+Ending narrative plays
+        │
+        ▼
+Credits
+```
+
+#### 8. Ending Narratives
+Each ending has full narrative text explaining:
+- What happened
+- Why it happened
+- What it means
+- The fate of Raka
+- The fate of the campus
+
+#### 9. Save Integration
+- Ending type saved/loaded
+- Final decision saved/loaded
+- Horror level peak saved/loaded
+- Truth fragments saved/loaded
+
+### Ending Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    ENDING FLOW DIAGRAM                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  All Systems Feed Into EndingManager:                        │
+│  ├─ DocumentManager → totalDocuments, criticalDocuments      │
+│  ├─ EvidenceManager → totalEvidence, criticalEvidence        │
+│  ├─ PuzzleManager → puzzlesSolved                            │
+│  ├─ HorrorManager → horrorLevelPeak                          │
+│  ├─ SetPieceManager → setPiecesCompleted                     │
+│  ├─ Semester14Observer → observations                        │
+│  └─ LevelFlowManager → currentPhase                          │
+│                                                              │
+│  EndingManager.EvaluateEndingCondition()                     │
+│  ├─ Check True Ending conditions (highest priority)          │
+│  ├─ Check Good Ending conditions                             │
+│  ├─ Check Secret Ending conditions                           │
+│  └─ Check Bad Ending conditions (lowest priority)            │
+│                                                              │
+│  When StoryPhase = FinalChase:                               │
+│  ├─ SetEndingPhase(WorldBreakdown)                           │
+│  ├─ WorldState → BrokenReality                               │
+│  ├─ S14 becomes constant                                     │
+│  ├─ Player → Graduation Hall                                 │
+│  ├─ ShowFinalDecisionUI()                                    │
+│  │   ├─ Destroy Ritual → TriggerEnding(Good)                 │
+│  │   ├─ Continue Loop → TriggerEnding(Bad)                   │
+│  │   └─ Escape → TriggerEnding(Secret)                       │
+│  └─ PlayEndingSequence() → Credits                           │
+│                                                              │
+│  TruthRevealManager:                                         │
+│  ├─ Evaluates fragments based on collected data              │
+│  ├─ Reveals fragments as conditions met                      │
+│  └─ Generates final narrative summary                        │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Narrative Integration Explanation
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│                 NARRATIVE INTEGRATION                           │
+├───────────────────────────────────────────────────────────────┤
+│                                                                │
+│  DOCUMENTS ──→ Truth Fragments ──→ Final Narrative             │
+│       │              │                    │                     │
+│       │              ▼                    ▼                     │
+│       │     "Campus History"      "What you learned"           │
+│       │     "The Ritual"                                        │
+│       │                                                        │
+│  EVIDENCE ──→ Truth Fragments ──→ Ending Conditions            │
+│       │              │                    │                     │
+│       │              ▼                    ▼                     │
+│       │     "Raka's Story"        "What ending you deserve"    │
+│       │     "S14 Identity"                                     │
+│       │                                                        │
+│  PUZZLES ──→ Truth Fragments ──→ Ending Requirements           │
+│       │              │                    │                     │
+│       │              ▼                    ▼                     │
+│       │     "The Loop"            "Did you solve enough?"      │
+│       │                                                        │
+│  HORROR ──→ Peak Tracking ──→ Ending Tier                     │
+│       │              │                    │                     │
+│       │              ▼                    ▼                     │
+│       │     "What you endured"   "How much truth you can take" │
+│       │                                                        │
+│  S14 OBSERVATIONS ──→ Truth Fragments ──→ True Ending         │
+│       │              │                    │                     │
+│       │              ▼                    ▼                     │
+│       │     "S14 Identity"        "Understanding Raka"         │
+│       │                                                        │
+│  SETPIECES ──→ Ending Conditions ──→ Final Chase Trigger       │
+│       │              │                    │                     │
+│       │              ▼                    ▼                     │
+│       │     "Scripted moments"    "Climax readiness"           │
+│                                                                │
+│  ALL SYSTEMS CONVERGE INTO:                                    │
+│  ├─ One truth (Raka = S14 = the loop)                         │
+│  ├─ One conflict (the ritual)                                  │
+│  └─ One final decision (destroy/continue/escape)               │
+│                                                                │
+└───────────────────────────────────────────────────────────────┘
+```
+
+### Updated Project Structure
+```
+Assets/
+└── Scripts/
+    ├── Core/
+    │   └── Ending/
+    │       ├── EndingType.cs
+    │       ├── EndingConditions.cs
+    │       ├── EndingManager.cs
+    │       └── TruthRevealManager.cs
+    └── UI/
+        └── EndingUI.cs
+```
+
+---
+
 ## How to Use
 
 ### Quick Start

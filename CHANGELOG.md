@@ -217,6 +217,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.9.0] - 2026-06-13
+
+### Added
+- EndingManager singleton with EvaluateEndingCondition/TriggerEnding/LoadEndingSequence
+- EndingType enum (Good, Bad, Secret, True)
+- EndingPhase enum (NotStarted through Credits)
+- EndingConditions class with configurable requirements per ending
+- EndingEvaluationData gathering from all game systems
+- TruthRevealManager with 6 truth fragments and narrative summary
+- TruthFragment system with condition-based revelation
+- FinalDecision enum (DestroyRitual, ContinueLoop, EscapeWithoutTruth)
+- EndingUI with final decision buttons and ending narrative display
+- 4 ending narratives with full story text:
+  - Good: "The End of the Loop" — destroy ritual, Raka is free
+  - Bad: "The Cycle Continues" — escape but loop continues
+  - Secret: "The Third Path" — join the system
+  - True: "The Truth Revealed" — Semester 14 is Raka
+- Ending sequence flow: WorldBreakdown → ConstantPresence → GraduationHall → FinalDecision → EndingSequence → Credits
+- EndingSaveEntry and TruthRevealSaveData for persistence
+
+### Changed
+- SaveData now includes EndingSaveEntry and revealedTruthFragments
+- SaveManager now saves/restores ending state and truth fragments
+- SceneBootstrapper now creates EndingManager and TruthRevealManager
+
+### Project Structure
+- Assets/Scripts/Core/Ending/ - EndingType, EndingConditions, EndingManager, TruthRevealManager
+- Assets/Scripts/UI/EndingUI.cs
+
+---
+
 ## [0.0.0] - 2026-06-11
 
 ### Added

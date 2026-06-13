@@ -11,6 +11,7 @@ using EscapeCampus.Horror.SetPieces;
 using EscapeCampus.Puzzle;
 using EscapeCampus.Save;
 using EscapeCampus.UI;
+using EscapeCampus.Core.Ending;
 
 namespace EscapeCampus.Core
 {
@@ -142,6 +143,18 @@ namespace EscapeCampus.Core
             {
                 GameObject setPieceObj = new GameObject("SetPieceManager");
                 setPieceObj.AddComponent<SetPieceManager>();
+            }
+
+            if (EndingManager.Instance == null)
+            {
+                GameObject endingObj = new GameObject("EndingManager");
+                endingObj.AddComponent<EndingManager>();
+            }
+
+            if (TruthRevealManager.Instance == null)
+            {
+                GameObject truthObj = new GameObject("TruthRevealManager");
+                truthObj.AddComponent<TruthRevealManager>();
             }
 
             // UI Canvas

@@ -34,6 +34,12 @@ namespace EscapeCampus.Save
         // SetPieces
         public List<SetPieceSaveEntry> setPieceStates = new List<SetPieceSaveEntry>();
 
+        // Ending
+        public EndingSaveEntry endingState = new EndingSaveEntry();
+
+        // Truth
+        public List<string> revealedTruthFragments = new List<string>();
+
         public SaveData()
         {
             saveID = Guid.NewGuid().ToString();
@@ -91,6 +97,18 @@ namespace EscapeCampus.Save
             this.setPieceID = id;
             this.state = state;
         }
+    }
+
+    [Serializable]
+    public class EndingSaveEntry
+    {
+        public string achievedEnding;
+        public string playerDecision;
+        public bool endingTriggered;
+        public float horrorLevelPeak;
+        public int totalObservations;
+
+        public EndingSaveEntry() { }
     }
 
     [Serializable]

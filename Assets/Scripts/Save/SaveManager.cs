@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.IO;
 using System.Collections.Generic;
+using EscapeCampus.Core.Ending;
 using EscapeCampus.Documents;
 using EscapeCampus.Evidence;
 using EscapeCampus.Horror;
@@ -259,6 +260,24 @@ namespace EscapeCampus.Save
                 data.setPieceStates = spData.entries;
             }
 
+            // Ending
+            if (EndingManager.Instance != null)
+            {
+                EndingSaveData endingData = EndingManager.Instance.GetSaveData();
+                data.endingState.achievedEnding = endingData.achievedEnding;
+                data.endingState.playerDecision = endingData.playerDecision;
+                data.endingState.endingTriggered = endingData.endingTriggered;
+                data.endingState.horrorLevelPeak = endingData.horrorLevelPeak;
+                data.endingState.totalObservations = endingData.totalObservations;
+            }
+
+            // Truth
+            if (TruthRevealManager.Instance != null)
+            {
+                TruthRevealSaveData truthData = TruthRevealManager.Instance.GetSaveData();
+                data.revealedTruthFragments = truthData.revealedFragmentIDs;
+            }
+
             return data;
         }
 
@@ -342,6 +361,30 @@ namespace EscapeCampus.Save
             {
                 SetPieceSaveData spData = new SetPieceSaveData { entries = data.setPieceStates };
                 SetPieceManager.Instance.LoadSaveData(spData);
+            }
+
+            // Ending
+            if (EndingManager.Instance != null && data.endingState != null)
+            {
+                EndingSaveData endingData = new EndingSaveData
+                {
+                    achievedEnding = data.endingState.achievedEnding,
+                    playerDecision = data.endingState.playerDecision,
+                    endingTriggered = data.endingState.endingTriggered,
+                    horrorLevelPeak = data.endingState.horrorLevelPeak,
+                    totalObservations = data.endingState.totalObservations
+                };
+                EndingManager.Instance.LoadSaveData(endingData);
+            }
+
+            // Truth
+            if (TruthRevealManager.Instance != null && data.revealedTruthFragments != null)
+            {
+                TruthRevealSaveData truthData = new TruthRevealSaveData
+                {
+                    revealedFragmentIDs = data.revealedTruthFragments
+                };
+                TruthRevealManager.Instance.LoadSaveData(truthData);
             }
         }
 
