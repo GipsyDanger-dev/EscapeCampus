@@ -185,6 +185,103 @@ Assets/
 
 ---
 
+## Task 004 - Puzzle Framework Foundation
+
+### Status: COMPLETED
+
+### What Was Built
+
+#### 1. Puzzle State System
+- **PuzzleState** enum:
+  - `Locked` — Cannot be started
+  - `Unlocked` — Ready to start
+  - `InProgress` — Player is working on it
+  - `Solved` — Completed
+
+#### 2. Puzzle Manager
+- **PuzzleManager** singleton with:
+  - `RegisterPuzzle(puzzle)` — Register puzzle in system
+  - `GetPuzzleState(id)` — Get current state
+  - `SetPuzzleState(id, state)` — Set state (with validation)
+  - `IsPuzzleCompleted(id)` — Check if solved
+  - `UnlockAllPuzzles()` — Debug: unlock all
+  - `SolveCurrentPuzzle()` — Debug: solve active puzzle
+  - `GetSaveData()` / `LoadSaveData()` — Save/Load integration
+  - Events: `OnPuzzleStateChanged`, `OnPuzzleCompleted`
+
+#### 3. Puzzle Base Class
+- **PuzzleBase** abstract class with:
+  - `puzzleID` (string)
+  - `puzzleName` (string)
+  - `initialState` (PuzzleState)
+  - `requiredDocuments` (List<DocumentData>)
+  - `requiredEvidence` (List<EvidenceData>)
+  - `ValidateConditions()` — Checks document/evidence requirements
+  - `StartPuzzle()` — Start if unlocked and requirements met
+  - `CompletePuzzle()` — Mark as solved
+  - `Unlock()` — Change from Locked to Unlocked
+  - `OnStateChanged()` — Override for state reactions
+
+#### 4. Puzzle Trigger
+- **PuzzleTrigger** (IInteractable) with:
+  - State-aware prompts (locked/unlocked/in-progress/solved)
+  - Press E to start puzzle
+  - Only works if unlocked
+  - `OnPuzzleLocked()` virtual method for custom locked behavior
+
+#### 5. Document & Evidence Integration
+- PuzzleBase reads from DocumentManager and EvidenceManager
+- `ValidateConditions()` checks all required documents collected
+- `ValidateConditions()` checks all required evidence collected
+- Puzzle cannot start unless requirements are met
+
+#### 6. First Dummy Puzzle
+- **PZ_LIBRARY_TIMELINE** (LibraryTimelinePuzzle):
+  - Requires: DOC_002 (Student Complaint) and DOC_004 (Maintenance Request)
+  - Mechanic: Player reads 2 documents, determines which event happened first
+  - UI: Question text + 2 buttons (A or B)
+  - Correct answer: Maintenance Request happened first
+  - Feedback: Green for correct, red for incorrect
+  - Auto-completes after 1.5s delay on correct answer
+
+#### 7. Debug System
+- **F2** = Unlock all puzzles
+- **F3** = Solve current in-progress puzzle
+- Console logging of all puzzle states on debug actions
+
+#### 8. Save System Integration
+- Puzzle states saved to `SaveData.puzzleStates`
+- `PuzzleSaveEntry` class (puzzleID + state string)
+- Puzzle state restored on load
+- Autosave triggered on puzzle completion
+
+### Puzzle Flow
+```
+1. Player collects required documents
+2. Puzzle automatically unlocks (or manually via F2)
+3. Player interacts with PuzzleTrigger (E key)
+4. PuzzleBase validates conditions (documents/evidence)
+5. Puzzle UI appears
+6. Player solves puzzle
+7. Puzzle state → Solved
+8. Autosave triggered
+```
+
+### Updated Project Structure
+```
+Assets/
+└── Scripts/
+    └── Puzzle/
+        ├── PuzzleState.cs
+        ├── PuzzleManager.cs
+        ├── PuzzleBase.cs
+        ├── PuzzleTrigger.cs
+        ├── LibraryTimelinePuzzle.cs
+        └── PuzzleDebugTool.cs
+```
+
+---
+
 ## How to Use
 
 ### Quick Start
@@ -207,7 +304,9 @@ Assets/
 | Close UI | ESC |
 | Save Game | F5 |
 | Load Game | F9 |
-| Debug Overlay | F1 |
+| Save Debug Overlay | F1 |
+| Unlock All Puzzles | F2 |
+| Solve Current Puzzle | F3 |
 
 ---
 
@@ -216,11 +315,13 @@ Assets/
 - **Assembly Definitions** used for clean compilation
 - **No external assets** - all code-based
 - **Prototype-first** approach - visual polish later
-- **Singleton pattern** for managers (DocumentManager, EvidenceManager, SaveManager)
-- **Event-driven** architecture for UI updates and autosave
-- **ScriptableObject** data architecture for documents/evidence
+- **Singleton pattern** for managers (DocumentManager, EvidenceManager, SaveManager, PuzzleManager)
+- **Event-driven** architecture for UI updates, autosave, and puzzle state
+- **ScriptableObject** data architecture for documents, evidence, and puzzle requirements
 - **JSON serialization** for save data (human-readable, debuggable)
 - **Save files** stored in `Application.persistentDataPath/Saves/`
+- **Abstract base class** pattern for puzzles (PuzzleBase)
+- **Requirement validation** pattern (documents + evidence checks)
 
 ---
 

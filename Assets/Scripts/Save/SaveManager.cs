@@ -4,6 +4,7 @@ using System.IO;
 using System.Collections.Generic;
 using EscapeCampus.Documents;
 using EscapeCampus.Evidence;
+using EscapeCampus.Puzzle;
 
 namespace EscapeCampus.Save
 {
@@ -48,6 +49,11 @@ namespace EscapeCampus.Save
             {
                 EvidenceManager.Instance.OnEvidenceCollected += OnEvidenceCollected;
             }
+
+            if (PuzzleManager.Instance != null)
+            {
+                PuzzleManager.Instance.OnPuzzleCompleted += OnPuzzleCompleted;
+            }
         }
 
         private void OnDestroy()
@@ -60,6 +66,11 @@ namespace EscapeCampus.Save
             if (EvidenceManager.Instance != null)
             {
                 EvidenceManager.Instance.OnEvidenceCollected -= OnEvidenceCollected;
+            }
+
+            if (PuzzleManager.Instance != null)
+            {
+                PuzzleManager.Instance.OnPuzzleCompleted -= OnPuzzleCompleted;
             }
         }
 
@@ -212,6 +223,16 @@ namespace EscapeCampus.Save
                 }
             }
 
+            // Puzzles
+            if (PuzzleManager.Instance != null)
+            {
+                var puzzleStates = PuzzleManager.Instance.GetAllPuzzleStates();
+                foreach (var kvp in puzzleStates)
+                {
+                    data.puzzleStates.Add(new PuzzleSaveEntry(kvp.Key, kvp.Value.ToString()));
+                }
+            }
+
             return data;
         }
 
@@ -252,6 +273,20 @@ namespace EscapeCampus.Save
             if (EvidenceManager.Instance != null && data.collectedEvidenceIDs.Count > 0)
             {
                 LoadEvidenceIntoManager(data.collectedEvidenceIDs);
+            }
+
+            // Puzzles
+            if (PuzzleManager.Instance != null && data.puzzleStates.Count > 0)
+            {
+                Dictionary<string, PuzzleState> puzzleDict = new Dictionary<string, PuzzleState>();
+                foreach (PuzzleSaveEntry entry in data.puzzleStates)
+                {
+                    if (Enum.TryParse(entry.state, out PuzzleState state))
+                    {
+                        puzzleDict[entry.puzzleID] = state;
+                    }
+                }
+                PuzzleManager.Instance.LoadSaveData(puzzleDict);
             }
         }
 
@@ -352,6 +387,11 @@ namespace EscapeCampus.Save
         }
 
         private void OnEvidenceCollected(EvidenceData evidence)
+        {
+            Autosave();
+        }
+
+        private void OnPuzzleCompleted(string puzzleID)
         {
             Autosave();
         }

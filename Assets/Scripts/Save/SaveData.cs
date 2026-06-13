@@ -22,6 +22,9 @@ namespace EscapeCampus.Save
         // Evidence
         public List<string> collectedEvidenceIDs = new List<string>();
 
+        // Puzzles
+        public List<PuzzleSaveEntry> puzzleStates = new List<PuzzleSaveEntry>();
+
         public SaveData()
         {
             saveID = Guid.NewGuid().ToString();
@@ -30,6 +33,21 @@ namespace EscapeCampus.Save
             playTimeSeconds = 0f;
             currentScene = "LobbyPrototype";
             player = new PlayerSaveData();
+        }
+    }
+
+    [Serializable]
+    public class PuzzleSaveEntry
+    {
+        public string puzzleID;
+        public string state;
+
+        public PuzzleSaveEntry() { }
+
+        public PuzzleSaveEntry(string id, string state)
+        {
+            this.puzzleID = id;
+            this.state = state;
         }
     }
 

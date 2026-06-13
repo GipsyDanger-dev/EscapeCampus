@@ -84,6 +84,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.4.0] - 2026-06-13
+
+### Added
+- PuzzleState enum (Locked, Unlocked, InProgress, Solved)
+- PuzzleManager singleton with Register/GetState/SetState/IsCompleted API
+- PuzzleBase abstract class with document/evidence requirement validation
+- PuzzleTrigger interactable (press E to start puzzle, state-aware prompts)
+- LibraryTimelinePuzzle - first dummy puzzle (read 2 docs, determine event order)
+- PuzzleDebugTool (F2 unlock all, F3 solve current, console state logging)
+- Puzzle state persistence in SaveData (JSON serialized)
+- Puzzle autosave on completion
+- PuzzleManager events: OnPuzzleStateChanged, OnPuzzleCompleted
+
+### Changed
+- SaveData now includes puzzleStates list (PuzzleSaveEntry with puzzleID and state)
+- SaveManager now saves/restores puzzle state
+- SaveManager subscribes to PuzzleManager.OnPuzzleCompleted for autosave
+- SceneBootstrapper now creates PuzzleManager and PuzzleDebugTool
+
+### Project Structure
+- Assets/Scripts/Puzzle/ - PuzzleState, PuzzleManager, PuzzleBase, PuzzleTrigger, LibraryTimelinePuzzle, PuzzleDebugTool
+
+---
+
 ## [0.0.0] - 2026-06-11
 
 ### Added

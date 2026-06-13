@@ -5,6 +5,7 @@ using EscapeCampus.Player;
 using EscapeCampus.Interaction;
 using EscapeCampus.Documents;
 using EscapeCampus.Evidence;
+using EscapeCampus.Puzzle;
 using EscapeCampus.Save;
 using EscapeCampus.UI;
 
@@ -104,6 +105,12 @@ namespace EscapeCampus.Core
                 saveManagerObj.AddComponent<SaveManager>();
             }
 
+            if (PuzzleManager.Instance == null)
+            {
+                GameObject puzzleManagerObj = new GameObject("PuzzleManager");
+                puzzleManagerObj.AddComponent<PuzzleManager>();
+            }
+
             // UI Canvas
             Canvas canvas = FindObjectOfType<Canvas>();
             if (canvas == null)
@@ -133,6 +140,9 @@ namespace EscapeCampus.Core
 
                 // Save Debug Tool
                 CreateSaveDebugTool(canvasObj);
+
+                // Puzzle Debug Tool
+                CreatePuzzleDebugTool(canvasObj);
             }
 
             // Add Lobby Prototype Builder if not already present
@@ -718,6 +728,11 @@ namespace EscapeCampus.Core
             SetSerializedField(debugType, debugTool, "debugText", debugText);
 
             debugPanel.SetActive(false);
+        }
+
+        private void CreatePuzzleDebugTool(GameObject canvasObj)
+        {
+            PuzzleDebugTool puzzleDebug = canvasObj.AddComponent<PuzzleDebugTool>();
         }
 
         private void CreateButton(Transform parent, string name, string text, Vector2 anchor, UnityEngine.Events.UnityAction onClick)
