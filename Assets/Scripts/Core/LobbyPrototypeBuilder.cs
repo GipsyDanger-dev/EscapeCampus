@@ -1,5 +1,7 @@
 using UnityEngine;
 using EscapeCampus.Interaction;
+using EscapeCampus.Documents;
+using EscapeCampus.Evidence;
 
 namespace EscapeCampus.Core
 {
@@ -160,21 +162,40 @@ namespace EscapeCampus.Core
 
         private void AddInteractables(Transform parent)
         {
-            // Add some interactable objects in the library
-            Vector3[] bookPositions = new Vector3[]
+            // Document pickups (yellow markers)
+            Material docMat = CreateMaterial(new Color(1f, 0.9f, 0.3f));
+
+            Vector3[] docPositions = new Vector3[]
             {
-                new Vector3(-3, 1, -25),
-                new Vector3(3, 1, -30),
-                new Vector3(-2, 1, -32),
-                new Vector3(4, 1, -26),
+                new Vector3(-3, 1, -25),    // Library - Doc 1
+                new Vector3(3, 1, -30),     // Library - Doc 2
+                new Vector3(-2, 1, -32),    // Library - Doc 3
+                new Vector3(2, 0.5f, -2),   // Spawn Area - Doc 4
+                new Vector3(0, 1, -44),     // Archive - Doc 5
             };
 
-            for (int i = 0; i < bookPositions.Length; i++)
+            for (int i = 0; i < docPositions.Length; i++)
             {
-                GameObject book = CreateCube(parent, $"Book_{i}", bookPositions[i],
-                    new Vector3(0.3f, 0.4f, 0.2f), accentMat);
-                InteractableObject interactable = book.AddComponent<InteractableObject>();
-                // InteractableObject prompt is set via serialized field
+                GameObject docPickup = CreateCube(parent, $"DocumentPickup_{i + 1}", docPositions[i],
+                    new Vector3(0.4f, 0.5f, 0.3f), docMat);
+                docPickup.AddComponent<DocumentPickup>();
+            }
+
+            // Evidence pickups (green markers)
+            Material evMat = CreateMaterial(new Color(0.3f, 1f, 0.5f));
+
+            Vector3[] evPositions = new Vector3[]
+            {
+                new Vector3(0, 1, -28),     // Library center - Evidence 1
+                new Vector3(-4, 1, -44),    // Archive - Evidence 2
+                new Vector3(4, 1, -44),     // Archive - Evidence 3
+            };
+
+            for (int i = 0; i < evPositions.Length; i++)
+            {
+                GameObject evPickup = CreateCube(parent, $"EvidencePickup_{i + 1}", evPositions[i],
+                    new Vector3(0.4f, 0.5f, 0.3f), evMat);
+                evPickup.AddComponent<EvidencePickup>();
             }
         }
 

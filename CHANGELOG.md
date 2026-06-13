@@ -31,6 +31,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.2.0] - 2026-06-13
+
+### Added
+- DocumentData ScriptableObject (DocumentID, Title, Category, Content, IsCritical, Thumbnail)
+- DocumentPickup component for world interaction
+- DocumentManager singleton for tracking collected documents
+- DocumentViewer UI with scrollable content and ESC close
+- EvidenceData ScriptableObject (EvidenceID, Title, Description, RelatedDocuments, IsCritical)
+- EvidencePickup component for world interaction
+- EvidenceManager singleton for tracking collected evidence
+- Investigation Journal UI with Documents/Evidence tabs (Press J)
+- 5 prototype documents (1 critical: Dean's Confidential Memo)
+- 3 prototype evidence items (1 critical: Covert Research Activity)
+- Editor tools for generating and assigning prototype content
+- Document and Evidence pickup markers in lobby prototype (yellow/green cubes)
+
+### Changed
+- SceneBootstrapper now creates DocumentManager, EvidenceManager, DocumentViewer, and InvestigationJournal
+- LobbyPrototypeBuilder now spawns document and evidence pickup objects
+
+### Project Structure
+- Assets/ScriptableObjects/ - DocumentData.cs, EvidenceData.cs, Documents/, Evidence/
+- Assets/Scripts/Documents/ - DocumentManager, DocumentPickup, DocumentViewer
+- Assets/Scripts/Evidence/ - EvidenceManager, EvidencePickup
+- Assets/Scripts/UI/ - InvestigationJournal
+- Assets/Scripts/Editor/ - PrototypeContentGenerator, PrototypeContentPlacer
+
+---
+
 ## [0.0.0] - 2026-06-11
 
 ### Added
