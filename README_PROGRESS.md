@@ -104,6 +104,87 @@ Assets/
 
 ---
 
+## Task 003 - Save System Foundation
+
+### Status: COMPLETED
+
+### What Was Built
+
+#### 1. Save Data Model
+- **SaveData** serializable class with:
+  - Player position (X, Y, Z)
+  - Player rotation (Euler X, Y, Z)
+  - Collected document IDs (List<string>)
+  - Collected evidence IDs (List<string>)
+  - Current scene name
+  - Play time in seconds
+  - Save timestamp
+  - Save ID (GUID)
+- **PlayerSaveData** helper class for position/rotation conversion
+
+#### 2. Save Manager
+- **SaveManager** singleton with:
+  - `SaveGame(isAutosave)` - Save to manual or autosave slot
+  - `LoadGame(fromAutosave)` - Load from manual or autosave slot
+  - `DeleteSave(autosave)` - Delete specific save file
+  - `HasSave(autosave)` - Check if save exists
+  - `GetCurrentSaveData()` - Get save data without applying
+  - JSON serialization to `Application.persistentDataPath/Saves/`
+  - Events: OnGameSaved, OnGameLoaded, OnSaveDeleted
+
+#### 3. Save Slots
+- **Manual Save** - F5 key, `manual_save.json`
+- **Autosave** - Event-based, `autosave.json`
+
+#### 4. Player Save/Restore
+- Position saved and restored
+- Rotation saved and restored
+- CharacterController disabled during teleport to prevent physics issues
+
+#### 5. Document Save/Restore
+- Collected document IDs persisted
+- On load, ScriptableObjects re-matched by ID
+- DocumentManager state restored
+
+#### 6. Evidence Save/Restore
+- Collected evidence IDs persisted
+- On load, ScriptableObjects re-matched by ID
+- EvidenceManager state restored
+
+#### 7. Autosave Triggers
+- Document collected → autosave
+- Evidence collected → autosave
+- Event-based (no timer)
+
+#### 8. Save UI
+- **F5** = Manual Save
+- **F9** = Load Manual Save
+- On-screen message: "Game Saved (Manual Save)"
+- On-screen message: "Game Loaded (Manual Save)"
+- Message auto-hides after 2 seconds
+
+#### 9. Debug Tool
+- **F1** = Toggle debug overlay
+- Shows: save file existence, save path, play time
+- Shows: collected documents (list with critical tag)
+- Shows: collected evidence (list with critical tag)
+- Shows: player position (X, Y, Z)
+- Auto-updates every 0.5 seconds
+
+### Updated Project Structure
+```
+Assets/
+└── Scripts/
+    ├── Save/
+    │   ├── SaveData.cs
+    │   └── SaveManager.cs
+    └── UI/
+        ├── SaveUI.cs
+        └── SaveDebugTool.cs
+```
+
+---
+
 ## How to Use
 
 ### Quick Start
@@ -124,6 +205,9 @@ Assets/
 | Interact | E |
 | Open Journal | J |
 | Close UI | ESC |
+| Save Game | F5 |
+| Load Game | F9 |
+| Debug Overlay | F1 |
 
 ---
 
@@ -132,9 +216,11 @@ Assets/
 - **Assembly Definitions** used for clean compilation
 - **No external assets** - all code-based
 - **Prototype-first** approach - visual polish later
-- **Singleton pattern** for managers (DocumentManager, EvidenceManager)
-- **Event-driven** architecture for UI updates
+- **Singleton pattern** for managers (DocumentManager, EvidenceManager, SaveManager)
+- **Event-driven** architecture for UI updates and autosave
 - **ScriptableObject** data architecture for documents/evidence
+- **JSON serialization** for save data (human-readable, debuggable)
+- **Save files** stored in `Application.persistentDataPath/Saves/`
 
 ---
 

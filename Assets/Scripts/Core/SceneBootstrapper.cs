@@ -5,6 +5,7 @@ using EscapeCampus.Player;
 using EscapeCampus.Interaction;
 using EscapeCampus.Documents;
 using EscapeCampus.Evidence;
+using EscapeCampus.Save;
 using EscapeCampus.UI;
 
 namespace EscapeCampus.Core
@@ -97,6 +98,12 @@ namespace EscapeCampus.Core
                 evManagerObj.AddComponent<EvidenceManager>();
             }
 
+            if (SaveManager.Instance == null)
+            {
+                GameObject saveManagerObj = new GameObject("SaveManager");
+                saveManagerObj.AddComponent<SaveManager>();
+            }
+
             // UI Canvas
             Canvas canvas = FindObjectOfType<Canvas>();
             if (canvas == null)
@@ -120,6 +127,12 @@ namespace EscapeCampus.Core
 
                 // Investigation Journal
                 CreateInvestigationJournal(canvas);
+
+                // Save UI
+                CreateSaveUI(canvasObj);
+
+                // Save Debug Tool
+                CreateSaveDebugTool(canvasObj);
             }
 
             // Add Lobby Prototype Builder if not already present
@@ -633,6 +646,78 @@ namespace EscapeCampus.Core
             {
                 field.SetValue(target, value);
             }
+        }
+
+        private void CreateSaveUI(GameObject canvasObj)
+        {
+            // Message panel at top center
+            GameObject msgPanel = new GameObject("SaveMessagePanel");
+            msgPanel.transform.SetParent(canvasObj.transform, false);
+
+            Image msgBg = msgPanel.AddComponent<Image>();
+            msgBg.color = new Color(0, 0, 0, 0.8f);
+
+            RectTransform msgRect = msgPanel.GetComponent<RectTransform>();
+            msgRect.anchorMin = new Vector2(0.35f, 0.85f);
+            msgRect.anchorMax = new Vector2(0.65f, 0.95f);
+            msgRect.sizeDelta = Vector2.zero;
+
+            GameObject msgTextObj = new GameObject("MessageText");
+            msgTextObj.transform.SetParent(msgPanel.transform, false);
+
+            Text msgText = msgTextObj.AddComponent<Text>();
+            msgText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            msgText.fontSize = 24;
+            msgText.color = Color.white;
+            msgText.alignment = TextAnchor.MiddleCenter;
+
+            RectTransform msgTextRect = msgTextObj.GetComponent<RectTransform>();
+            msgTextRect.anchorMin = Vector2.zero;
+            msgTextRect.anchorMax = Vector2.one;
+            msgTextRect.sizeDelta = Vector2.zero;
+
+            SaveUI saveUI = canvasObj.AddComponent<SaveUI>();
+            var saveUIType = typeof(SaveUI);
+            SetSerializedField(saveUIType, saveUI, "messagePanel", msgPanel);
+            SetSerializedField(saveUIType, saveUI, "messageText", msgText);
+
+            msgPanel.SetActive(false);
+        }
+
+        private void CreateSaveDebugTool(GameObject canvasObj)
+        {
+            // Debug panel at top-left
+            GameObject debugPanel = new GameObject("SaveDebugPanel");
+            debugPanel.transform.SetParent(canvasObj.transform, false);
+
+            Image debugBg = debugPanel.AddComponent<Image>();
+            debugBg.color = new Color(0, 0, 0, 0.85f);
+
+            RectTransform debugRect = debugPanel.GetComponent<RectTransform>();
+            debugRect.anchorMin = new Vector2(0, 0.3f);
+            debugRect.anchorMax = new Vector2(0.25f, 0.95f);
+            debugRect.sizeDelta = Vector2.zero;
+
+            GameObject debugTextObj = new GameObject("DebugText");
+            debugTextObj.transform.SetParent(debugPanel.transform, false);
+
+            Text debugText = debugTextObj.AddComponent<Text>();
+            debugText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            debugText.fontSize = 14;
+            debugText.color = Color.green;
+
+            RectTransform debugTextRect = debugTextObj.GetComponent<RectTransform>();
+            debugTextRect.anchorMin = Vector2.zero;
+            debugTextRect.anchorMax = Vector2.one;
+            debugTextRect.offsetMin = new Vector2(10, 10);
+            debugTextRect.offsetMax = new Vector2(-10, -10);
+
+            SaveDebugTool debugTool = canvasObj.AddComponent<SaveDebugTool>();
+            var debugType = typeof(SaveDebugTool);
+            SetSerializedField(debugType, debugTool, "debugPanel", debugPanel);
+            SetSerializedField(debugType, debugTool, "debugText", debugText);
+
+            debugPanel.SetActive(false);
         }
 
         private void CreateButton(Transform parent, string name, string text, Vector2 anchor, UnityEngine.Events.UnityAction onClick)

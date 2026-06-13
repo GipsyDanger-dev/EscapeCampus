@@ -60,6 +60,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.3.0] - 2026-06-13
+
+### Added
+- SaveData model with JSON serialization (player position, documents, evidence, play time, timestamp)
+- SaveManager singleton with Save/Load/Delete/HasSave API
+- Save slots: 1 manual slot (F5) + 1 autosave slot (event-based)
+- Player position and rotation save/restore with CharacterController handling
+- Document collection persistence (collected IDs saved/restored)
+- Evidence collection persistence (collected IDs saved/restored)
+- Event-based autosave triggers (document collected, evidence collected)
+- SaveUI with F5 save / F9 load hotkeys and on-screen confirmation messages
+- SaveDebugTool overlay (F1 toggle) showing save file info, document/evidence counts, player position
+- Save files stored in Application.persistentDataPath/Saves/
+
+### Changed
+- SceneBootstrapper now creates SaveManager, SaveUI, and SaveDebugTool
+- DocumentManager and EvidenceManager integrated with SaveManager for autosave
+
+### Project Structure
+- Assets/Scripts/Save/ - SaveData, SaveManager
+- Assets/Scripts/UI/ - SaveUI, SaveDebugTool
+
+---
+
 ## [0.0.0] - 2026-06-11
 
 ### Added
