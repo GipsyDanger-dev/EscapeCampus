@@ -15,33 +15,20 @@ namespace EscapeCampus.Level
 {
     public class LevelConfigurator : MonoBehaviour
     {
-        [Header("Document References")]
-        [SerializeField] private DocumentData doc001;
-        [SerializeField] private DocumentData doc002;
-        [SerializeField] private DocumentData doc003;
-        [SerializeField] private DocumentData doc004;
+        [Header("Timeout Fallbacks (seconds)")]
+        [SerializeField] private float phase1Timeout = 120f;
+        [SerializeField] private float phase2Timeout = 600f;
+        [SerializeField] private float phase4Timeout = 900f;
+        [SerializeField] private float phase5Timeout = 600f;
 
-        [Header("Evidence References")]
-        [SerializeField] private EvidenceData ev001;
-        [SerializeField] private EvidenceData ev002;
-        [SerializeField] private EvidenceData ev003;
-
-        [Header("Horror Events")]
-        [SerializeField] private HorrorEvent lightFlickerEvent;
-        [SerializeField] private HorrorEvent whisperEvent;
-        [SerializeField] private HorrorEvent textShiftEvent;
-        [SerializeField] private HorrorEvent uiGlitchEvent;
-
-        [Header("SetPieces")]
-        [SerializeField] private SetPieceBase whisperCorridorSetPiece;
-
-        private bool tutorialComplete;
-        private bool phase2Started;
-        private bool phase3Started;
-        private bool phase4Started;
-        private bool phase5Started;
-        private bool phase6Started;
-        private bool phase7Started;
+        private int documentsInteracted;
+        private bool phase1Complete;
+        private bool phase2Complete;
+        private bool phase3Complete;
+        private bool phase4Complete;
+        private bool phase5Complete;
+        private bool phase6Complete;
+        private bool phase7Complete;
 
         private void Start()
         {
@@ -50,19 +37,21 @@ namespace EscapeCampus.Level
 
         private IEnumerator InitializeLevel()
         {
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(1f);
 
             SpawnPlayer();
-            PlaceDocuments();
-            PlaceEvidence();
-            ConfigurePuzzles();
-            ConfigureHorrorEvents();
-            ConfigureSafeZones();
-            WirePhaseTransitions();
-            WireEndingSystem();
-            ConfigureExperienceDirector();
+            yield return new WaitForSeconds(0.5f);
 
-            StartCoroutine(TutorialSequence());
+            WireDocumentTracking();
+            WireEvidenceTracking();
+            WirePuzzleTracking();
+            WirePhaseTransitions();
+            ConfigureInitialHorror();
+            ConfigureSafeZone();
+            WireEndingSystem();
+            ConfigurePacing();
+
+            StartCoroutine(Phase1_Intro());
         }
 
         // ============================================
@@ -73,360 +62,247 @@ namespace EscapeCampus.Level
             GameObject player = GameObject.FindWithTag("Player");
             if (player != null)
             {
+                CharacterController cc = player.GetComponent<CharacterController>();
+                if (cc != null) cc.enabled = false;
                 player.transform.position = new Vector3(0, 1, 2);
                 player.transform.rotation = Quaternion.Euler(0, 180, 0);
+                if (cc != null) cc.enabled = true;
             }
         }
 
         // ============================================
-        // DOCUMENT PLACEMENT
+        // WIRING
         // ============================================
-        private void PlaceDocuments()
+        private void WireDocumentTracking()
         {
-            // DOC_002 - Lobby Entrance (tutorial area)
-            PlaceDocumentPickup(new Vector3(-3, 1, 1), doc002);
-
-            // DOC_003 - Main Library (reading table)
-            PlaceDocumentPickup(new Vector3(0, 1, -12), doc003);
-
-            // DOC_004 - Main Library (librarian desk)
-            PlaceDocumentPickup(new Vector3(8, 1, -8), doc004);
-
-            // DOC_001 - Archive Room (research desk, critical)
-            PlaceDocumentPickup(new Vector3(0, 1, -56), doc001);
-        }
-
-        private void PlaceDocumentPickup(Vector3 pos, DocumentData data)
-        {
-            if (data == null) return;
-
-            GameObject pickup = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            pickup.name = $"DocPickup_{data.documentID}";
-            pickup.transform.position = pos;
-            pickup.transform.localScale = new Vector3(0.3f, 0.4f, 0.2f);
-
-            Renderer r = pickup.GetComponent<Renderer>();
-            if (r != null)
+            if (DocumentManager.Instance != null)
             {
-                Material mat = new Material(Shader.Find("Standard"));
-                mat.color = new Color(1f, 0.9f, 0.3f); // Yellow for documents
-                r.material = mat;
+                DocumentManager.Instance.OnDocumentCollected += OnDocumentCollected;
             }
-
-            DocumentPickup dp = pickup.AddComponent<DocumentPickup>();
-            dp.SetDocumentData(data);
         }
 
-        // ============================================
-        // EVIDENCE PLACEMENT
-        // ============================================
-        private void PlaceEvidence()
+        private void WireEvidenceTracking()
         {
-            // EV_003 - Lobby Entrance
-            PlaceEvidencePickup(new Vector3(3, 1, 1), ev003);
-
-            // EV_001 - Main Library (near shelves)
-            PlaceEvidencePickup(new Vector3(-7, 1, -14), ev001);
-
-            // EV_002 - Archive Room (filing cabinet)
-            PlaceEvidencePickup(new Vector3(-6, 1, -50), ev002);
-        }
-
-        private void PlaceEvidencePickup(Vector3 pos, EvidenceData data)
-        {
-            if (data == null) return;
-
-            GameObject pickup = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            pickup.name = $"EvPickup_{data.evidenceID}";
-            pickup.transform.position = pos;
-            pickup.transform.localScale = new Vector3(0.3f, 0.4f, 0.2f);
-
-            Renderer r = pickup.GetComponent<Renderer>();
-            if (r != null)
+            if (EvidenceManager.Instance != null)
             {
-                Material mat = new Material(Shader.Find("Standard"));
-                mat.color = new Color(0.3f, 1f, 0.5f); // Green for evidence
-                r.material = mat;
+                EvidenceManager.Instance.OnEvidenceCollected += OnEvidenceCollected;
             }
-
-            EvidencePickup ep = pickup.AddComponent<EvidencePickup>();
-            ep.SetEvidenceData(data);
         }
 
-        // ============================================
-        // PUZZLE CONFIGURATION
-        // ============================================
-        private void ConfigurePuzzles()
+        private void WirePuzzleTracking()
         {
-            // PZ_LIBRARY_TIMELINE - Main Library
-            // Already exists in scene from LibraryTimelinePuzzle
-            // Configure requirements
-            LibraryTimelinePuzzle timelinePuzzle = FindObjectOfType<LibraryTimelinePuzzle>();
-            if (timelinePuzzle != null)
+            if (PuzzleManager.Instance != null)
             {
-                // Puzzle requires DOC_003 and DOC_004
-                // Set via serialized fields in editor or configure here
-            }
-
-            // PZ_ARCHIVE_CORRELATION - Archive Room
-            // Create second puzzle for archive
-            CreateArchivePuzzle();
-        }
-
-        private void CreateArchivePuzzle()
-        {
-            // Create puzzle trigger in archive room
-            GameObject puzzleTrigger = new GameObject("PuzzleTrigger_Archive");
-            puzzleTrigger.transform.position = new Vector3(0, 1, -58);
-
-            BoxCollider col = puzzleTrigger.AddComponent<BoxCollider>();
-            col.size = new Vector3(3, 3, 3);
-            col.isTrigger = true;
-
-            // Add puzzle component (uses existing framework)
-            PuzzleTrigger pt = puzzleTrigger.AddComponent<PuzzleTrigger>();
-            // PuzzleBase will be configured via serialized fields
-        }
-
-        // ============================================
-        // HORROR EVENT CONFIGURATION
-        // ============================================
-        private void ConfigureHorrorEvents()
-        {
-            // Disable all horror events initially
-            if (lightFlickerEvent != null) lightFlickerEvent.SetEnabled(false);
-            if (whisperEvent != null) whisperEvent.SetEnabled(false);
-            if (textShiftEvent != null) textShiftEvent.SetEnabled(false);
-            if (uiGlitchEvent != null) uiGlitchEvent.SetEnabled(false);
-
-            // Configure HorrorManager initial state
-            if (HorrorManager.Instance != null)
-            {
-                HorrorManager.Instance.DebugSetLevel(0f);
+                PuzzleManager.Instance.OnPuzzleCompleted += OnPuzzleCompleted;
             }
         }
 
-        // ============================================
-        // SAFE ZONE CONFIGURATION
-        // ============================================
-        private void ConfigureSafeZones()
-        {
-            // Safe zone is already configured in LevelLayoutBuilder
-            // via SafeZone component on trigger
-        }
-
-        // ============================================
-        // PHASE TRANSITIONS
-        // ============================================
         private void WirePhaseTransitions()
         {
-            // Subscribe to phase changes
             if (LevelFlowManager.Instance != null)
             {
                 LevelFlowManager.Instance.OnPhaseEntered += OnPhaseEntered;
             }
         }
 
-        private void OnPhaseEntered(StoryPhase phase)
+        private void ConfigureInitialHorror()
         {
-            switch (phase)
+            if (HorrorManager.Instance != null)
             {
-                case StoryPhase.EarlyInvestigation:
-                    OnPhase2Start();
-                    break;
-                case StoryPhase.FirstAnomaly:
-                    OnPhase3Start();
-                    break;
-                case StoryPhase.DeepInvestigation:
-                    OnPhase4Start();
-                    break;
-                case StoryPhase.RealityBreakdown:
-                    OnPhase5Start();
-                    break;
-                case StoryPhase.FinalPreparation:
-                    OnPhase6Start();
-                    break;
-                case StoryPhase.FinalChase:
-                    OnPhase7Start();
-                    break;
+                HorrorManager.Instance.DebugSetLevel(0f);
+            }
+        }
+
+        private void ConfigureSafeZone()
+        {
+            // Safe zone is already configured via SafeZone component in LevelLayoutBuilder
+        }
+
+        private void WireEndingSystem()
+        {
+            // Ending is wired via EndingManager events
+        }
+
+        private void ConfigurePacing()
+        {
+            if (ExperienceDirector.Instance != null)
+            {
+                ExperienceDirector.Instance.TriggerNarrativeBeat(NarrativeBeat.Exploration);
             }
         }
 
         // ============================================
-        // PHASE 1: TUTORIAL (0-5 min)
+        // EVENT HANDLERS
         // ============================================
-        private IEnumerator TutorialSequence()
+        private void OnDocumentCollected(DocumentData doc)
         {
-            // Show tutorial UI
-            yield return new WaitForSeconds(2f);
+            documentsInteracted++;
+            Debug.Log($"[Level] Document collected: {doc.title} (Total: {documentsInteracted})");
+        }
 
-            // Tutorial messages handled by existing UI system
+        private void OnEvidenceCollected(EvidenceData ev)
+        {
+            Debug.Log($"[Level] Evidence collected: {ev.title}");
+        }
+
+        private void OnPuzzleCompleted(string puzzleID)
+        {
+            Debug.Log($"[Level] Puzzle completed: {puzzleID}");
+        }
+
+        private void OnPhaseEntered(StoryPhase phase)
+        {
+            Debug.Log($"[Level] Phase entered: {phase}");
+        }
+
+        // ============================================
+        // PHASE 1: INTRO (0-5 min)
+        // ============================================
+        private IEnumerator Phase1_Intro()
+        {
+            Debug.Log("[Level] === PHASE 1: INTRO ===");
+
+            // Tutorial messages
+            yield return new WaitForSeconds(3f);
             Debug.Log("[Level] Tutorial: WASD to move, Mouse to look, E to interact, J for journal");
 
-            // Wait for 2 document interactions OR 90 seconds
+            // Wait for 2 document interactions OR timeout
             float timer = 0f;
-            int docsCollected = 0;
-
-            if (DocumentManager.Instance != null)
-            {
-                DocumentManager.Instance.OnDocumentCollected += (doc) =>
-                {
-                    docsCollected++;
-                };
-            }
-
-            while (docsCollected < 2 && timer < 90f)
+            while (documentsInteracted < 2 && timer < phase1Timeout)
             {
                 timer += Time.deltaTime;
                 yield return null;
             }
 
-            // Transition to Phase 2
-            if (LevelFlowManager.Instance != null)
+            if (!phase1Complete)
             {
-                LevelFlowManager.Instance.SetStoryPhase(StoryPhase.EarlyInvestigation);
+                phase1Complete = true;
+                TransitionToPhase(StoryPhase.EarlyInvestigation);
             }
         }
 
         // ============================================
         // PHASE 2: EARLY INVESTIGATION (5-15 min)
         // ============================================
-        private void OnPhase2Start()
+        private IEnumerator Phase2_EarlyInvestigation()
         {
-            if (phase2Started) return;
-            phase2Started = true;
+            Debug.Log("[Level] === PHASE 2: EARLY INVESTIGATION ===");
 
-            Debug.Log("[Level] Phase 2: Early Investigation");
+            // Enable limited horror
+            EnableHorrorEvents(false, false, false, false);
 
-            // Enable limited horror events
-            if (lightFlickerEvent != null) lightFlickerEvent.SetEnabled(true);
-            if (whisperEvent != null) whisperEvent.SetEnabled(true);
-
-            // Configure horror rules
+            // Set horror level
             if (HorrorManager.Instance != null)
             {
                 HorrorManager.Instance.DebugSetLevel(15f);
             }
 
-            // Subscribe to puzzle completion for phase transition
+            // Wait for puzzle completion OR timeout
+            float timer = 0f;
+            bool puzzleSolved = false;
+
             if (PuzzleManager.Instance != null)
             {
-                PuzzleManager.Instance.OnPuzzleCompleted += OnPuzzleCompletedPhase2;
+                puzzleSolved = PuzzleManager.Instance.GetCompletedCount() >= 1;
             }
-        }
 
-        private void OnPuzzleCompletedPhase2(string puzzleID)
-        {
-            // PZ_LIBRARY_TIMELINE solved → FirstAnomaly
-            if (puzzleID == "PZ_LIBRARY_TIMELINE")
+            while (!puzzleSolved && timer < phase2Timeout)
             {
-                if (LevelFlowManager.Instance != null)
-                {
-                    LevelFlowManager.Instance.SetStoryPhase(StoryPhase.FirstAnomaly);
-                }
-
+                timer += Time.deltaTime;
                 if (PuzzleManager.Instance != null)
                 {
-                    PuzzleManager.Instance.OnPuzzleCompleted -= OnPuzzleCompletedPhase2;
+                    puzzleSolved = PuzzleManager.Instance.GetCompletedCount() >= 1;
                 }
+                yield return null;
+            }
+
+            if (!phase2Complete)
+            {
+                phase2Complete = true;
+                TransitionToPhase(StoryPhase.FirstAnomaly);
             }
         }
 
         // ============================================
-        // PHASE 3: FIRST HORROR SETPIECE (15-20 min)
+        // PHASE 3: FIRST SETPIECE (15-20 min)
         // ============================================
-        private void OnPhase3Start()
+        private IEnumerator Phase3_FirstSetpiece()
         {
-            if (phase3Started) return;
-            phase3Started = true;
+            Debug.Log("[Level] === PHASE 3: FIRST SETPIECE ===");
 
-            Debug.Log("[Level] Phase 3: First Horror Setpiece");
-
-            // Setpiece will be triggered by trigger volume in corridor
-            // Configure horror level
+            // Set horror level
             if (HorrorManager.Instance != null)
             {
                 HorrorManager.Instance.DebugSetLevel(35f);
+            }
+
+            // Setpiece will be triggered by trigger volume in corridor
+            // Wait for setpiece completion OR timeout
+            float timer = 0f;
+            bool setpieceDone = false;
+
+            while (!setpieceDone && timer < 300f)
+            {
+                timer += Time.deltaTime;
+                if (SetPieceManager.Instance != null)
+                {
+                    setpieceDone = SetPieceManager.Instance.IsSetPieceCompleted("SP_LIBRARY_WHISPER_CORRIDOR");
+                }
+                yield return null;
+            }
+
+            if (!phase3Complete)
+            {
+                phase3Complete = true;
+                TransitionToPhase(StoryPhase.DeepInvestigation);
             }
         }
 
         // ============================================
         // PHASE 4: DEEP INVESTIGATION (20-35 min)
         // ============================================
-        private void OnPhase4Start()
+        private IEnumerator Phase4_DeepInvestigation()
         {
-            if (phase4Started) return;
-            phase4Started = true;
+            Debug.Log("[Level] === PHASE 4: DEEP INVESTIGATION ===");
 
-            Debug.Log("[Level] Phase 4: Deep Investigation");
+            // Enable text corruption and UI glitch
+            EnableHorrorEvents(false, false, true, true);
 
-            // Enable text shift and UI glitch
-            if (textShiftEvent != null) textShiftEvent.SetEnabled(true);
-            if (uiGlitchEvent != null) uiGlitchEvent.SetEnabled(true);
-
-            // Enable S14 peripheral observations
+            // Set horror level
             if (HorrorManager.Instance != null)
             {
                 HorrorManager.Instance.DebugSetLevel(45f);
             }
 
-            // Subscribe to evidence collection for phase transition
-            if (EvidenceManager.Instance != null)
+            // Wait for 3+ evidence AND 2+ puzzles OR timeout
+            float timer = 0f;
+            bool conditionsMet = false;
+
+            while (!conditionsMet && timer < phase4Timeout)
             {
-                EvidenceManager.Instance.OnEvidenceCollected += OnEvidenceCollectedPhase4;
+                timer += Time.deltaTime;
+
+                int evidenceCount = EvidenceManager.Instance?.TotalCollected ?? 0;
+                int puzzleCount = PuzzleManager.Instance?.GetCompletedCount() ?? 0;
+
+                conditionsMet = evidenceCount >= 3 && puzzleCount >= 2;
+
+                yield return null;
             }
 
-            // Subscribe to puzzle completion
-            if (PuzzleManager.Instance != null)
+            if (!phase4Complete)
             {
-                PuzzleManager.Instance.OnPuzzleCompleted += OnPuzzleCompletedPhase4;
-            }
-        }
-
-        private void OnEvidenceCollectedPhase4(EvidenceData evidence)
-        {
-            CheckPhase4Completion();
-        }
-
-        private void OnPuzzleCompletedPhase4(string puzzleID)
-        {
-            CheckPhase4Completion();
-        }
-
-        private void CheckPhase4Completion()
-        {
-            if (EvidenceManager.Instance == null || PuzzleManager.Instance == null) return;
-
-            bool evidenceComplete = EvidenceManager.Instance.TotalCollected >= 3;
-            bool puzzleComplete = PuzzleManager.Instance.GetCompletedCount() >= 2;
-
-            if (evidenceComplete && puzzleComplete)
-            {
-                if (LevelFlowManager.Instance != null)
-                {
-                    LevelFlowManager.Instance.SetStoryPhase(StoryPhase.RealityBreakdown);
-                }
-
-                if (EvidenceManager.Instance != null)
-                {
-                    EvidenceManager.Instance.OnEvidenceCollected -= OnEvidenceCollectedPhase4;
-                }
-                if (PuzzleManager.Instance != null)
-                {
-                    PuzzleManager.Instance.OnPuzzleCompleted -= OnPuzzleCompletedPhase4;
-                }
+                phase4Complete = true;
+                TransitionToPhase(StoryPhase.RealityBreakdown);
             }
         }
 
         // ============================================
         // PHASE 5: ESCALATION (35-45 min)
         // ============================================
-        private void OnPhase5Start()
+        private IEnumerator Phase5_Escalation()
         {
-            if (phase5Started) return;
-            phase5Started = true;
-
-            Debug.Log("[Level] Phase 5: Escalation");
+            Debug.Log("[Level] === PHASE 5: ESCALATION ===");
 
             // World state changes
             if (WorldStateManager.Instance != null)
@@ -440,52 +316,46 @@ namespace EscapeCampus.Level
                 HorrorManager.Instance.DebugSetLevel(65f);
             }
 
-            // S14 observation frequency doubled
-            if (Semester14Observer.Instance != null)
+            // Enable all horror
+            EnableHorrorEvents(true, true, true, true);
+
+            // Wait for horror peak OR timeout
+            float timer = 0f;
+            while (timer < phase5Timeout)
             {
-                // Observer will naturally increase with higher horror level
-            }
+                timer += Time.deltaTime;
 
-            // Disable horror cooldowns (but keep caps)
-            // Handled by ExperienceDirector
+                if (HorrorManager.Instance != null)
+                {
+                    float level = HorrorManager.Instance.GetHorrorLevel();
+                    if (level >= 75f) break;
+                }
 
-            // After horror level reaches threshold → FinalPreparation
-            StartCoroutine(WaitForEscalationPeak());
-        }
-
-        private IEnumerator WaitForEscalationPeak()
-        {
-            while (HorrorManager.Instance != null && HorrorManager.Instance.GetHorrorLevel() < 75f)
-            {
                 yield return null;
             }
 
-            if (LevelFlowManager.Instance != null)
+            if (!phase5Complete)
             {
-                LevelFlowManager.Instance.SetStoryPhase(StoryPhase.FinalPreparation);
+                phase5Complete = true;
+                TransitionToPhase(StoryPhase.FinalPreparation);
             }
         }
 
         // ============================================
         // PHASE 6: SAFE ZONE (45-50 min)
         // ============================================
-        private void OnPhase6Start()
+        private IEnumerator Phase6_SafeZone()
         {
-            if (phase6Started) return;
-            phase6Started = true;
-
-            Debug.Log("[Level] Phase 6: Safe Zone");
+            Debug.Log("[Level] === PHASE 6: SAFE ZONE ===");
 
             // Disable all horror
+            EnableHorrorEvents(false, false, false, false);
+
+            // Reduce horror level
             if (HorrorManager.Instance != null)
             {
                 HorrorManager.Instance.DebugSetLevel(30f);
             }
-
-            if (lightFlickerEvent != null) lightFlickerEvent.SetEnabled(false);
-            if (whisperEvent != null) whisperEvent.SetEnabled(false);
-            if (textShiftEvent != null) textShiftEvent.SetEnabled(false);
-            if (uiGlitchEvent != null) uiGlitchEvent.SetEnabled(false);
 
             // Reveal truth fragments
             if (TruthRevealManager.Instance != null)
@@ -493,60 +363,44 @@ namespace EscapeCampus.Level
                 TruthRevealManager.Instance.EvaluateTruthFragments();
             }
 
-            // Unlock Graduation Hall door
+            // Unlock graduation door
             UnlockGraduationDoor();
 
-            // After player enters Graduation Hall → FinalChase
-            StartCoroutine(WaitForGraduationEntry());
-        }
-
-        private void UnlockGraduationDoor()
-        {
-            DoorController[] doors = FindObjectsOfType<DoorController>();
-            foreach (DoorController door in doors)
+            // Wait for player to enter graduation hall
+            GameObject player = GameObject.FindWithTag("Player");
+            if (player != null)
             {
-                if (door.gameObject.name == "GraduationDoor")
+                while (player.transform.position.z > -80f)
                 {
-                    door.SetLocked(false);
-                    break;
+                    yield return null;
                 }
             }
-        }
-
-        private IEnumerator WaitForGraduationEntry()
-        {
-            // Wait for player to reach graduation hall area
-            GameObject player = GameObject.FindWithTag("Player");
-            if (player == null) yield break;
-
-            while (player.transform.position.z > -80f)
+            else
             {
-                yield return null;
+                yield return new WaitForSeconds(300f);
             }
 
-            if (LevelFlowManager.Instance != null)
+            if (!phase6Complete)
             {
-                LevelFlowManager.Instance.SetStoryPhase(StoryPhase.FinalChase);
+                phase6Complete = true;
+                TransitionToPhase(StoryPhase.FinalChase);
             }
         }
 
         // ============================================
         // PHASE 7: FINAL SEQUENCE (50-60 min)
         // ============================================
-        private void OnPhase7Start()
+        private IEnumerator Phase7_FinalSequence()
         {
-            if (phase7Started) return;
-            phase7Started = true;
+            Debug.Log("[Level] === PHASE 7: FINAL SEQUENCE ===");
 
-            Debug.Log("[Level] Phase 7: Final Sequence");
-
-            // World state locked to BrokenReality
+            // Lock world state
             if (WorldStateManager.Instance != null)
             {
                 WorldStateManager.Instance.SetWorldState(WorldState.BrokenReality);
             }
 
-            // Horror level locked 80-100
+            // Lock horror level
             if (HorrorManager.Instance != null)
             {
                 HorrorManager.Instance.DebugSetLevel(85f);
@@ -558,101 +412,131 @@ namespace EscapeCampus.Level
                 Semester14Observer.Instance.DebugForceSpawn();
             }
 
-            // ExperienceDirector locks to Horror beat
+            // Lock pacing to horror
             if (ExperienceDirector.Instance != null)
             {
                 ExperienceDirector.Instance.TriggerNarrativeBeat(NarrativeBeat.Horror);
             }
 
-            // Enable all horror events at high frequency
-            if (lightFlickerEvent != null) lightFlickerEvent.SetEnabled(true);
-            if (whisperEvent != null) whisperEvent.SetEnabled(true);
-            if (textShiftEvent != null) textShiftEvent.SetEnabled(true);
-            if (uiGlitchEvent != null) uiGlitchEvent.SetEnabled(true);
+            // Enable all horror
+            EnableHorrorEvents(true, true, true, true);
 
-            // Final setpiece: collapse effect
-            StartCoroutine(FinalCollapseSequence());
-        }
-
-        private IEnumerator FinalCollapseSequence()
-        {
             // Wait for player to reach ritual area
             GameObject player = GameObject.FindWithTag("Player");
-            if (player == null) yield break;
-
-            while (Vector3.Distance(player.transform.position, new Vector3(0, 1, -90)) > 5f)
+            if (player != null)
             {
-                yield return null;
-            }
-
-            // Trigger final decision
-            if (EndingManager.Instance != null)
-            {
-                EndingType possibleEnding = EndingManager.Instance.EvaluateEndingCondition();
-
-                if (possibleEnding == EndingType.TrueEnding)
+                while (Vector3.Distance(player.transform.position, new Vector3(0, 1, -90)) > 5f)
                 {
-                    // Auto-trigger true ending if conditions met
-                    EndingManager.Instance.TriggerEnding(EndingType.TrueEnding);
-                }
-                else
-                {
-                    // Show final decision UI
-                    EndingManager.Instance.SetEndingPhase(EndingPhase.FinalDecision);
+                    yield return null;
                 }
             }
-        }
-
-        // ============================================
-        // ENDING SYSTEM
-        // ============================================
-        private void WireEndingSystem()
-        {
-            if (EndingManager.Instance != null)
+            else
             {
-                EndingManager.OnEndingTriggered += OnEndingTriggered;
+                yield return new WaitForSeconds(300f);
             }
-        }
 
-        private void OnEndingTriggered(EndingType type)
-        {
-            Debug.Log($"[Level] Ending triggered: {type}");
-
-            // Lock all player control
-            var playerController = FindObjectOfType<EscapeCampus.Player.FirstPersonController>();
-            if (playerController != null) playerController.enabled = false;
-
-            // Show ending UI
-            EndingUI endingUI = FindObjectOfType<EndingUI>();
-            if (endingUI != null)
-            {
-                // EndingUI handles display
-            }
+            // Trigger ending
+            TriggerEnding();
         }
 
         // ============================================
-        // EXPERIENCE DIRECTOR
+        // PHASE TRANSITIONS
         // ============================================
-        private void ConfigureExperienceDirector()
-        {
-            if (ExperienceDirector.Instance != null)
-            {
-                // Start with calm pacing
-                ExperienceDirector.Instance.TriggerNarrativeBeat(NarrativeBeat.Exploration);
-            }
-        }
-
-        private void OnDestroy()
+        private void TransitionToPhase(StoryPhase phase)
         {
             if (LevelFlowManager.Instance != null)
             {
-                LevelFlowManager.Instance.OnPhaseEntered -= OnPhaseEntered;
+                LevelFlowManager.Instance.SetStoryPhase(phase);
             }
 
-            if (EndingManager.Instance != null)
+            // Start corresponding coroutine
+            switch (phase)
             {
-                EndingManager.OnEndingTriggered -= OnEndingTriggered;
+                case StoryPhase.EarlyInvestigation:
+                    StartCoroutine(Phase2_EarlyInvestigation());
+                    break;
+                case StoryPhase.FirstAnomaly:
+                    StartCoroutine(Phase3_FirstSetpiece());
+                    break;
+                case StoryPhase.DeepInvestigation:
+                    StartCoroutine(Phase4_DeepInvestigation());
+                    break;
+                case StoryPhase.RealityBreakdown:
+                    StartCoroutine(Phase5_Escalation());
+                    break;
+                case StoryPhase.FinalPreparation:
+                    StartCoroutine(Phase6_SafeZone());
+                    break;
+                case StoryPhase.FinalChase:
+                    StartCoroutine(Phase7_FinalSequence());
+                    break;
             }
+        }
+
+        // ============================================
+        // HELPERS
+        // ============================================
+        private void EnableHorrorEvents(bool flicker, bool whisper, bool textShift, bool uiGlitch)
+        {
+            // Find and enable/disable horror events by type
+            HorrorEvent[] events = FindObjectsOfType<HorrorEvent>();
+            foreach (HorrorEvent evt in events)
+            {
+                if (evt is EscapeCampus.Horror.Events.LightFlickerEvent)
+                    evt.SetEnabled(flicker);
+                else if (evt is EscapeCampus.Horror.Events.WhisperAudioEvent)
+                    evt.SetEnabled(whisper);
+                else if (evt is EscapeCampus.Horror.Events.DocumentTextShiftEvent)
+                    evt.SetEnabled(textShift);
+                else if (evt is EscapeCampus.Horror.Events.UIGlitchEvent)
+                    evt.SetEnabled(uiGlitch);
+            }
+        }
+
+        private void UnlockGraduationDoor()
+        {
+            DoorController[] doors = FindObjectsOfType<DoorController>();
+            foreach (DoorController door in doors)
+            {
+                if (door.gameObject.name.Contains("Graduation"))
+                {
+                    door.SetLocked(false);
+                    break;
+                }
+            }
+        }
+
+        private void TriggerEnding()
+        {
+            if (EndingManager.Instance == null) return;
+
+            // Check for true ending
+            EndingType possibleEnding = EndingManager.Instance.EvaluateEndingCondition();
+
+            if (possibleEnding == EndingType.TrueEnding)
+            {
+                EndingManager.Instance.TriggerEnding(EndingType.TrueEnding);
+            }
+            else
+            {
+                // Show decision UI
+                EndingManager.Instance.SetEndingPhase(EndingPhase.FinalDecision);
+            }
+        }
+
+        // ============================================
+        // CLEANUP
+        // ============================================
+        private void OnDestroy()
+        {
+            if (DocumentManager.Instance != null)
+                DocumentManager.Instance.OnDocumentCollected -= OnDocumentCollected;
+            if (EvidenceManager.Instance != null)
+                EvidenceManager.Instance.OnEvidenceCollected -= OnEvidenceCollected;
+            if (PuzzleManager.Instance != null)
+                PuzzleManager.Instance.OnPuzzleCompleted -= OnPuzzleCompleted;
+            if (LevelFlowManager.Instance != null)
+                LevelFlowManager.Instance.OnPhaseEntered -= OnPhaseEntered;
         }
     }
 }

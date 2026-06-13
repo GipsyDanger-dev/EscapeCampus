@@ -272,16 +272,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [1.1.0] - 2026-06-13 - FINAL BUILD
+## [1.2.0] - 2026-06-13 - FINAL RELEASE BUILD
+
+### Fixed
+- LevelConfigurator rewritten with timeout fallbacks for all phases
+- Phase 1: 120s timeout if documents not collected
+- Phase 2: 600s timeout if puzzle not solved
+- Phase 3: 300s timeout if setpiece not triggered
+- Phase 4: 900s timeout if conditions not met
+- Phase 5: 600s timeout if horror peak not reached
+- BuildConfigurator now blocks F1-F12 input (except F5/F9)
+- BuildConfigurator hides all debug panels
+- Cursor locked at start
 
 ### Added
 - LevelLayoutBuilder constructing full Campus Library Complex (6 areas)
-- LevelConfigurator wiring all triggers, documents, evidence, puzzles, horror, setpieces
+- LevelConfigurator wiring all triggers with bulletproof phase transitions
 - BuildConfigurator disabling all debug tools for release build
 - Complete level layout: Lobby → Library → Corridor → Archive → Maintenance → Graduation
 - Document placement: DOC_002 (Lobby), DOC_003/DOC_004 (Library), DOC_001 (Archive)
 - Evidence placement: EV_003 (Lobby), EV_001 (Library), EV_002 (Archive)
-- Phase transition wiring: Tutorial → EarlyInvestigation → FirstAnomaly → DeepInvestigation → RealityBreakdown → FinalPreparation → FinalChase
+- Phase transition wiring with coroutine-based flow control
 - Horror event scheduling per phase
 - Safe zone in Maintenance Hall with 5x tension decay
 - Final sequence with locked horror beat and S14 constant presence

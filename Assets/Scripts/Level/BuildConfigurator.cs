@@ -11,55 +11,78 @@ namespace EscapeCampus.Level
         {
             if (isReleaseBuild)
             {
-                DisableDebugTools();
+                DisableAllDebugTools();
+                ConfigureCursor();
             }
         }
 
-        private void DisableDebugTools()
+        private void DisableAllDebugTools()
         {
-            // Disable PuzzleDebugTool
-            var puzzleDebug = FindObjectOfType<EscapeCampus.Puzzle.PuzzleDebugTool>();
-            if (puzzleDebug != null)
-            {
-                puzzleDebug.enabled = false;
-            }
+            // Disable all debug tool components
+            DisableComponent<EscapeCampus.Puzzle.PuzzleDebugTool>();
+            DisableComponent<EscapeCampus.Horror.HorrorDebugTool>();
+            DisableComponent<EscapeCampus.Horror.Semester14.Semester14DebugTool>();
+            DisableComponent<EscapeCampus.Core.LevelFlowDebugTool>();
+            DisableComponent<EscapeCampus.Core.Pacing.PacingDebugTool>();
+            DisableComponent<EscapeCampus.UI.SaveDebugTool>();
 
-            // Disable HorrorDebugTool
-            var horrorDebug = FindObjectOfType<EscapeCampus.Horror.HorrorDebugTool>();
-            if (horrorDebug != null)
-            {
-                horrorDebug.enabled = false;
-            }
+            // Hide all debug panels
+            HideDebugPanels();
 
-            // Disable Semester14DebugTool
-            var s14Debug = FindObjectOfType<EscapeCampus.Horror.Semester14.Semester14DebugTool>();
-            if (s14Debug != null)
-            {
-                s14Debug.enabled = false;
-            }
+            Debug.Log("[BuildConfigurator] Release build: All debug tools disabled.");
+        }
 
-            // Disable LevelFlowDebugTool
-            var levelDebug = FindObjectOfType<EscapeCampus.Core.LevelFlowDebugTool>();
-            if (levelDebug != null)
+        private void DisableComponent<T>() where T : MonoBehaviour
+        {
+            T[] components = FindObjectsOfType<T>();
+            foreach (T comp in components)
             {
-                levelDebug.enabled = false;
+                comp.enabled = false;
             }
+        }
 
-            // Disable PacingDebugTool
-            var pacingDebug = FindObjectOfType<EscapeCampus.Core.Pacing.PacingDebugTool>();
-            if (pacingDebug != null)
+        private void HideDebugPanels()
+        {
+            // Find and hide all debug panels by name
+            string[] debugPanelNames = {
+                "SaveDebugPanel",
+                "Semester14DebugPanel",
+                "PacingDebugPanel",
+                "PhaseDisplayPanel"
+            };
+
+            foreach (string panelName in debugPanelNames)
             {
-                pacingDebug.enabled = false;
+                GameObject panel = GameObject.Find(panelName);
+                if (panel != null)
+                {
+                    panel.SetActive(false);
+                }
             }
+        }
 
-            // Disable SaveDebugTool
-            var saveDebug = FindObjectOfType<EscapeCampus.UI.SaveDebugTool>();
-            if (saveDebug != null)
+        private void ConfigureCursor()
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+
+        // Block debug input in release build
+        private void Update()
+        {
+            if (!isReleaseBuild) return;
+
+            // Block F1-F12 except F5 (save) and F9 (load)
+            for (int i = 1; i <= 12; i++)
             {
-                saveDebug.enabled = false;
-            }
+                if (i == 5 || i == 9) continue; // Allow save/load
 
-            Debug.Log("[BuildConfigurator] All debug tools disabled for release build.");
+                KeyCode key = KeyCode.F1 + (i - 1);
+                if (Input.GetKeyDown(key))
+                {
+                    // Consume the input - do nothing
+                }
+            }
         }
     }
 }
