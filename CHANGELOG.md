@@ -136,6 +136,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.6.0] - 2026-06-13
+
+### Added
+- StoryPhase enum (Introduction, EarlyInvestigation, FirstAnomaly, DeepInvestigation, RealityBreakdown, FinalPreparation, FinalChase, Ending)
+- LevelFlowManager singleton with phase management and transition rules
+- PhaseTransitionRule system with conditional advancement (puzzle count, evidence count, horror level)
+- WorldStateManager with 4 world states (Normal, Suspicious, Corrupted, BrokenReality)
+- WorldState environment effects (ambient light, fog color, fog density)
+- DoorController (IInteractable) with lock/unlock and WorldStateManager integration
+- LightingController with smooth state-based color/intensity transitions
+- AudioAmbienceController with crossfade between state-based ambience clips
+- WorldObject component for runtime object repositioning
+- NarrativeTrigger system with multi-condition evaluation (AND/OR logic)
+- Trigger conditions: PuzzleCompleted, DocumentCollected, EvidenceCollected, HorrorLevelReached, StoryPhaseEntered, TimePlayed
+- LevelFlowDebugTool (F7 next phase, F8 previous phase, on-screen phase display)
+
+### Changed
+- SceneBootstrapper now creates LevelFlowManager, WorldStateManager, LevelFlowDebugTool
+- WorldStateManager automatically applies ambient/fog settings based on state
+
+### Project Structure
+- Assets/Scripts/Core/ - StoryPhase, LevelFlowManager, WorldStateManager, NarrativeTrigger, DoorController, LightingController, AudioAmbienceController, LevelFlowDebugTool
+
+---
+
 ## [0.0.0] - 2026-06-11
 
 ### Added

@@ -378,6 +378,140 @@ Assets/
 
 ---
 
+## Task 006 - Level Scripting & Narrative Flow System
+
+### Status: COMPLETED
+
+### What Was Built
+
+#### 1. Story Phase System
+- **StoryPhase** enum:
+  - `Introduction` — Player arrives, orientation
+  - `EarlyInvestigation` — First documents, exploring
+  - `FirstAnomaly` — Something feels wrong
+  - `DeepInvestigation` — Serious research, puzzles
+  - `RealityBreakdown` — Horror escalates, reality扭曲
+  - `FinalPreparation` — Before the climax
+  - `FinalChase` — The escape sequence
+  - `Ending` — Resolution
+
+#### 2. Level Flow Manager
+- **LevelFlowManager** singleton with:
+  - `SetStoryPhase(phase)` — Set current phase
+  - `GetCurrentPhase()` — Get current phase
+  - `AdvancePhase()` — Move to next phase
+  - `GoToPreviousPhase()` — Move to previous phase
+  - `MarkPhaseCompleted(phase)` — Mark phase as done
+  - Events: `OnPhaseChanged`, `OnPhaseEntered`, `OnPhaseCompleted`
+
+#### 3. Automatic Transition Rules
+| From | To | Condition |
+|------|-----|-----------|
+| Introduction | EarlyInvestigation | 30 seconds elapsed |
+| EarlyInvestigation | FirstAnomaly | 1+ puzzle AND horror > 30 |
+| FirstAnomaly | DeepInvestigation | 3+ evidence AND 2+ puzzles |
+| DeepInvestigation | RealityBreakdown | horror > 60 |
+| RealityBreakdown | FinalPreparation | 5+ documents AND 4+ evidence |
+| FinalPreparation | FinalChase | horror > 80 |
+
+#### 4. World State Manager
+- **WorldStateManager** singleton with 4 states:
+  - `Normal` — Standard atmosphere
+  - `Suspicious` — Slightly darker, eerie
+  - `Corrupted` — Darker, heavier fog
+  - `BrokenReality` — Very dark, dense fog
+
+#### 5. Runtime World Changes
+- **DoorController** (IInteractable):
+  - Open/close doors
+  - Lock/unlock dynamically
+  - Integration with WorldStateManager
+- **LightingController**:
+  - Smooth color transitions per world state
+  - Smooth intensity transitions
+- **AudioAmbienceController**:
+  - Crossfade between state-based ambience clips
+  - Volume control
+
+#### 6. Narrative Trigger System
+- **NarrativeTrigger** with:
+  - Multi-condition evaluation (AND/OR logic)
+  - Trigger types: PuzzleCompleted, DocumentCollected, EvidenceCollected, HorrorLevelReached, StoryPhaseEntered, TimePlayed
+  - Actions: AdvancePhase, TriggerHorrorEvent, ChangeWorldState
+  - One-time or repeating triggers
+
+#### 7. Debug Tools
+- **F7** = Next story phase
+- **F8** = Previous story phase
+- On-screen phase display (yellow text at bottom center)
+
+### Story Phase Flow
+```
+Introduction (30s)
+      │
+      ▼
+EarlyInvestigation ──→ (1 puzzle + horror>30) ──→ FirstAnomaly
+      │                                               │
+      │                                               ▼
+      │                           (3 evidence + 2 puzzles) ──→ DeepInvestigation
+      │                                                           │
+      │                                                           ▼
+      │                                           (horror>60) ──→ RealityBreakdown
+      │                                                           │
+      │                                                           ▼
+      │                                       (5 docs + 4 ev) ──→ FinalPreparation
+      │                                                           │
+      │                                                           ▼
+      │                                           (horror>80) ──→ FinalChase
+      │                                                           │
+      │                                                           ▼
+      │                                                       Ending
+```
+
+### Integration Diagram
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     LEVEL FLOW INTEGRATION                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  DocumentManager ──┐                                            │
+│                    ├─→ NarrativeTrigger ──→ LevelFlowManager    │
+│  EvidenceManager ──┘         │                    │             │
+│                              │                    ▼             │
+│  PuzzleManager ──────────────┘         WorldStateManager       │
+│                                               │                │
+│  HorrorManager ──→ LevelFlowManager ─────────┘                │
+│       │                │                                       │
+│       │                ▼                                       │
+│       │         PhaseTransitionRules                           │
+│       │                │                                       │
+│       ▼                ▼                                       │
+│  HorrorEventTrigger   DoorController                          │
+│       │               LightingController                       │
+│       │               AudioAmbienceController                  │
+│       ▼                                                        │
+│  Horror Events (Light, Whisper, Door, Text, UI)               │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Updated Project Structure
+```
+Assets/
+└── Scripts/
+    └── Core/
+        ├── StoryPhase.cs
+        ├── LevelFlowManager.cs
+        ├── WorldStateManager.cs
+        ├── NarrativeTrigger.cs
+        ├── DoorController.cs
+        ├── LightingController.cs
+        ├── AudioAmbienceController.cs
+        └── LevelFlowDebugTool.cs
+```
+
+---
+
 ## How to Use
 
 ### Quick Start
@@ -406,6 +540,8 @@ Assets/
 | Increase Horror Level | F4 |
 | Decrease Horror Level | F5 |
 | Reset Horror | F6 |
+| Next Story Phase | F7 |
+| Previous Story Phase | F8 |
 
 ---
 

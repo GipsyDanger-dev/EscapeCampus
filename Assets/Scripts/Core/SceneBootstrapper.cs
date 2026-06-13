@@ -118,6 +118,18 @@ namespace EscapeCampus.Core
                 horrorManagerObj.AddComponent<HorrorManager>();
             }
 
+            if (LevelFlowManager.Instance == null)
+            {
+                GameObject levelFlowObj = new GameObject("LevelFlowManager");
+                levelFlowObj.AddComponent<LevelFlowManager>();
+            }
+
+            if (WorldStateManager.Instance == null)
+            {
+                GameObject worldStateObj = new GameObject("WorldStateManager");
+                worldStateObj.AddComponent<WorldStateManager>();
+            }
+
             // UI Canvas
             Canvas canvas = FindObjectOfType<Canvas>();
             if (canvas == null)
@@ -153,6 +165,9 @@ namespace EscapeCampus.Core
 
                 // Horror Debug Tool
                 CreateHorrorDebugTool(canvasObj);
+
+                // Level Flow Debug Tool
+                CreateLevelFlowDebugTool(canvasObj);
             }
 
             // Horror Event Trigger (on a separate object)
@@ -755,6 +770,40 @@ namespace EscapeCampus.Core
         private void CreateHorrorDebugTool(GameObject canvasObj)
         {
             HorrorDebugTool horrorDebug = canvasObj.AddComponent<HorrorDebugTool>();
+        }
+
+        private void CreateLevelFlowDebugTool(GameObject canvasObj)
+        {
+            // Phase display at bottom center
+            GameObject phasePanel = new GameObject("PhaseDisplayPanel");
+            phasePanel.transform.SetParent(canvasObj.transform, false);
+
+            Image phaseBg = phasePanel.AddComponent<Image>();
+            phaseBg.color = new Color(0, 0, 0, 0.7f);
+
+            RectTransform phaseRect = phasePanel.GetComponent<RectTransform>();
+            phaseRect.anchorMin = new Vector2(0.35f, 0.9f);
+            phaseRect.anchorMax = new Vector2(0.65f, 0.98f);
+            phaseRect.sizeDelta = Vector2.zero;
+
+            GameObject phaseTextObj = new GameObject("PhaseText");
+            phaseTextObj.transform.SetParent(phasePanel.transform, false);
+
+            Text phaseText = phaseTextObj.AddComponent<Text>();
+            phaseText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            phaseText.fontSize = 20;
+            phaseText.color = Color.yellow;
+            phaseText.alignment = TextAnchor.MiddleCenter;
+
+            RectTransform phaseTextRect = phaseTextObj.GetComponent<RectTransform>();
+            phaseTextRect.anchorMin = Vector2.zero;
+            phaseTextRect.anchorMax = Vector2.one;
+            phaseTextRect.sizeDelta = Vector2.zero;
+
+            LevelFlowDebugTool debugTool = canvasObj.AddComponent<LevelFlowDebugTool>();
+            var debugType = typeof(LevelFlowDebugTool);
+            SetSerializedField(debugType, debugTool, "phaseDisplayPanel", phasePanel);
+            SetSerializedField(debugType, debugTool, "phaseText", phaseText);
         }
 
         private void CreateButton(Transform parent, string name, string text, Vector2 anchor, UnityEngine.Events.UnityAction onClick)
